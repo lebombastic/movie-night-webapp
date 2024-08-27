@@ -174,6 +174,13 @@ function text(data) {
 function space() {
     return text(' ');
 }
+function empty() {
+    return text('');
+}
+function listen(node, event, handler, options) {
+    node.addEventListener(event, handler, options);
+    return () => node.removeEventListener(event, handler, options);
+}
 function attr(node, attribute, value) {
     if (value == null)
         node.removeAttribute(attribute);
@@ -270,6 +277,9 @@ function claim_text(nodes, data) {
 }
 function claim_space(nodes) {
     return claim_text(nodes, ' ');
+}
+function set_input_value(input, value) {
+    input.value = value == null ? '' : value;
 }
 
 let current_component;
@@ -1353,6 +1363,32 @@ function querystring(querystringParams) {
         }
     }
     return params.length ? '&' + params.join('&') : '';
+}
+/**
+ * Decodes a querystring (e.g. ?arg=val&arg2=val2) into a params object
+ * (e.g. {arg: 'val', arg2: 'val2'})
+ */
+function querystringDecode(querystring) {
+    const obj = {};
+    const tokens = querystring.replace(/^\?/, '').split('&');
+    tokens.forEach(token => {
+        if (token) {
+            const [key, value] = token.split('=');
+            obj[decodeURIComponent(key)] = decodeURIComponent(value);
+        }
+    });
+    return obj;
+}
+/**
+ * Extract the query string part of a URL, including the leading question mark (if present).
+ */
+function extractQuerystring(url) {
+    const queryStart = url.indexOf('?');
+    if (!queryStart) {
+        return '';
+    }
+    const fragmentStart = url.indexOf('#', queryStart);
+    return url.substring(queryStart, fragmentStart > 0 ? fragmentStart : undefined);
 }
 
 /**
@@ -3938,6 +3974,18 @@ function _getFinalTarget(auth, host, path, query) {
     }
     return _emulatorUrl(auth.config, base);
 }
+function _parseEnforcementState(enforcementStateStr) {
+    switch (enforcementStateStr) {
+        case 'ENFORCE':
+            return "ENFORCE" /* EnforcementState.ENFORCE */;
+        case 'AUDIT':
+            return "AUDIT" /* EnforcementState.AUDIT */;
+        case 'OFF':
+            return "OFF" /* EnforcementState.OFF */;
+        default:
+            return "ENFORCEMENT_STATE_UNSPECIFIED" /* EnforcementState.ENFORCEMENT_STATE_UNSPECIFIED */;
+    }
+}
 class NetworkTimeout {
     constructor(auth) {
         this.auth = auth;
@@ -3969,6 +4017,61 @@ function _makeTaggedError(auth, code, response) {
     // We know customData is defined on error because errorParams is defined
     error.customData._tokenResponse = response;
     return error;
+}
+function isEnterprise(grecaptcha) {
+    return (grecaptcha !== undefined &&
+        grecaptcha.enterprise !== undefined);
+}
+class RecaptchaConfig {
+    constructor(response) {
+        /**
+         * The reCAPTCHA site key.
+         */
+        this.siteKey = '';
+        /**
+         * The list of providers and their enablement status for reCAPTCHA Enterprise.
+         */
+        this.recaptchaEnforcementState = [];
+        if (response.recaptchaKey === undefined) {
+            throw new Error('recaptchaKey undefined');
+        }
+        // Example response.recaptchaKey: "projects/proj123/keys/sitekey123"
+        this.siteKey = response.recaptchaKey.split('/')[3];
+        this.recaptchaEnforcementState = response.recaptchaEnforcementState;
+    }
+    /**
+     * Returns the reCAPTCHA Enterprise enforcement state for the given provider.
+     *
+     * @param providerStr - The provider whose enforcement state is to be returned.
+     * @returns The reCAPTCHA Enterprise enforcement state for the given provider.
+     */
+    getProviderEnforcementState(providerStr) {
+        if (!this.recaptchaEnforcementState ||
+            this.recaptchaEnforcementState.length === 0) {
+            return null;
+        }
+        for (const recaptchaEnforcementState of this.recaptchaEnforcementState) {
+            if (recaptchaEnforcementState.provider &&
+                recaptchaEnforcementState.provider === providerStr) {
+                return _parseEnforcementState(recaptchaEnforcementState.enforcementState);
+            }
+        }
+        return null;
+    }
+    /**
+     * Returns true if the reCAPTCHA Enterprise enforcement state for the provider is set to ENFORCE or AUDIT.
+     *
+     * @param providerStr - The provider whose enablement state is to be returned.
+     * @returns Whether or not reCAPTCHA Enterprise protection is enabled for the given provider.
+     */
+    isProviderEnabled(providerStr) {
+        return (this.getProviderEnforcementState(providerStr) ===
+            "ENFORCE" /* EnforcementState.ENFORCE */ ||
+            this.getProviderEnforcementState(providerStr) === "AUDIT" /* EnforcementState.AUDIT */);
+    }
+}
+async function getRecaptchaConfig(auth, request) {
+    return _performApiRequest(auth, "GET" /* HttpMethod.GET */, "/v2/recaptchaConfig" /* Endpoint.GET_RECAPTCHA_CONFIG */, _addTidIfNecessary(auth, request));
 }
 
 /**
@@ -5981,11 +6084,162 @@ function _setExternalJSProvider(p) {
 function _loadJS(url) {
     return externalJSProvider.loadJS(url);
 }
+function _recaptchaEnterpriseScriptUrl() {
+    return externalJSProvider.recaptchaEnterpriseScript;
+}
 function _gapiScriptUrl() {
     return externalJSProvider.gapiScript;
 }
 function _generateCallbackName(prefix) {
     return `__${prefix}${Math.floor(Math.random() * 1000000)}`;
+}
+
+/* eslint-disable @typescript-eslint/no-require-imports */
+const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
+const FAKE_TOKEN = 'NO_RECAPTCHA';
+class RecaptchaEnterpriseVerifier {
+    /**
+     *
+     * @param authExtern - The corresponding Firebase {@link Auth} instance.
+     *
+     */
+    constructor(authExtern) {
+        /**
+         * Identifies the type of application verifier (e.g. "recaptcha-enterprise").
+         */
+        this.type = RECAPTCHA_ENTERPRISE_VERIFIER_TYPE;
+        this.auth = _castAuth(authExtern);
+    }
+    /**
+     * Executes the verification process.
+     *
+     * @returns A Promise for a token that can be used to assert the validity of a request.
+     */
+    async verify(action = 'verify', forceRefresh = false) {
+        async function retrieveSiteKey(auth) {
+            if (!forceRefresh) {
+                if (auth.tenantId == null && auth._agentRecaptchaConfig != null) {
+                    return auth._agentRecaptchaConfig.siteKey;
+                }
+                if (auth.tenantId != null &&
+                    auth._tenantRecaptchaConfigs[auth.tenantId] !== undefined) {
+                    return auth._tenantRecaptchaConfigs[auth.tenantId].siteKey;
+                }
+            }
+            return new Promise(async (resolve, reject) => {
+                getRecaptchaConfig(auth, {
+                    clientType: "CLIENT_TYPE_WEB" /* RecaptchaClientType.WEB */,
+                    version: "RECAPTCHA_ENTERPRISE" /* RecaptchaVersion.ENTERPRISE */
+                })
+                    .then(response => {
+                    if (response.recaptchaKey === undefined) {
+                        reject(new Error('recaptcha Enterprise site key undefined'));
+                    }
+                    else {
+                        const config = new RecaptchaConfig(response);
+                        if (auth.tenantId == null) {
+                            auth._agentRecaptchaConfig = config;
+                        }
+                        else {
+                            auth._tenantRecaptchaConfigs[auth.tenantId] = config;
+                        }
+                        return resolve(config.siteKey);
+                    }
+                })
+                    .catch(error => {
+                    reject(error);
+                });
+            });
+        }
+        function retrieveRecaptchaToken(siteKey, resolve, reject) {
+            const grecaptcha = window.grecaptcha;
+            if (isEnterprise(grecaptcha)) {
+                grecaptcha.enterprise.ready(() => {
+                    grecaptcha.enterprise
+                        .execute(siteKey, { action })
+                        .then(token => {
+                        resolve(token);
+                    })
+                        .catch(() => {
+                        resolve(FAKE_TOKEN);
+                    });
+                });
+            }
+            else {
+                reject(Error('No reCAPTCHA enterprise script loaded.'));
+            }
+        }
+        return new Promise((resolve, reject) => {
+            retrieveSiteKey(this.auth)
+                .then(siteKey => {
+                if (!forceRefresh && isEnterprise(window.grecaptcha)) {
+                    retrieveRecaptchaToken(siteKey, resolve, reject);
+                }
+                else {
+                    if (typeof window === 'undefined') {
+                        reject(new Error('RecaptchaVerifier is only supported in browser'));
+                        return;
+                    }
+                    let url = _recaptchaEnterpriseScriptUrl();
+                    if (url.length !== 0) {
+                        url += siteKey;
+                    }
+                    _loadJS(url)
+                        .then(() => {
+                        retrieveRecaptchaToken(siteKey, resolve, reject);
+                    })
+                        .catch(error => {
+                        reject(error);
+                    });
+                }
+            })
+                .catch(error => {
+                reject(error);
+            });
+        });
+    }
+}
+async function injectRecaptchaFields(auth, request, action, captchaResp = false) {
+    const verifier = new RecaptchaEnterpriseVerifier(auth);
+    let captchaResponse;
+    try {
+        captchaResponse = await verifier.verify(action);
+    }
+    catch (error) {
+        captchaResponse = await verifier.verify(action, true);
+    }
+    const newRequest = Object.assign({}, request);
+    if (!captchaResp) {
+        Object.assign(newRequest, { captchaResponse });
+    }
+    else {
+        Object.assign(newRequest, { 'captchaResp': captchaResponse });
+    }
+    Object.assign(newRequest, { 'clientType': "CLIENT_TYPE_WEB" /* RecaptchaClientType.WEB */ });
+    Object.assign(newRequest, {
+        'recaptchaVersion': "RECAPTCHA_ENTERPRISE" /* RecaptchaVersion.ENTERPRISE */
+    });
+    return newRequest;
+}
+async function handleRecaptchaFlow(authInstance, request, actionName, actionMethod) {
+    var _a;
+    if ((_a = authInstance
+        ._getRecaptchaConfig()) === null || _a === void 0 ? void 0 : _a.isProviderEnabled("EMAIL_PASSWORD_PROVIDER" /* RecaptchaProvider.EMAIL_PASSWORD_PROVIDER */)) {
+        const requestWithRecaptcha = await injectRecaptchaFields(authInstance, request, actionName, actionName === "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */);
+        return actionMethod(authInstance, requestWithRecaptcha);
+    }
+    else {
+        return actionMethod(authInstance, request).catch(async (error) => {
+            if (error.code === `auth/${"missing-recaptcha-token" /* AuthErrorCode.MISSING_RECAPTCHA_TOKEN */}`) {
+                console.log(`${actionName} is protected by reCAPTCHA Enterprise for this project. Automatically triggering the reCAPTCHA flow and restarting the flow.`);
+                const requestWithRecaptcha = await injectRecaptchaFields(authInstance, request, actionName, actionName === "getOobCode" /* RecaptchaActionName.GET_OOB_CODE */);
+                return actionMethod(authInstance, requestWithRecaptcha);
+            }
+            else {
+                return Promise.reject(error);
+            }
+        });
+    }
 }
 
 /**
@@ -6231,6 +6485,179 @@ class AuthCredential {
         return debugFail('not implemented');
     }
 }
+// Used for linking an email/password account to an existing idToken. Uses the same request/response
+// format as updateEmailPassword.
+async function linkEmailPassword(auth, request) {
+    return _performApiRequest(auth, "POST" /* HttpMethod.POST */, "/v1/accounts:signUp" /* Endpoint.SIGN_UP */, request);
+}
+
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+async function signInWithPassword(auth, request) {
+    return _performSignInRequest(auth, "POST" /* HttpMethod.POST */, "/v1/accounts:signInWithPassword" /* Endpoint.SIGN_IN_WITH_PASSWORD */, _addTidIfNecessary(auth, request));
+}
+
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+async function signInWithEmailLink$1(auth, request) {
+    return _performSignInRequest(auth, "POST" /* HttpMethod.POST */, "/v1/accounts:signInWithEmailLink" /* Endpoint.SIGN_IN_WITH_EMAIL_LINK */, _addTidIfNecessary(auth, request));
+}
+async function signInWithEmailLinkForLinking(auth, request) {
+    return _performSignInRequest(auth, "POST" /* HttpMethod.POST */, "/v1/accounts:signInWithEmailLink" /* Endpoint.SIGN_IN_WITH_EMAIL_LINK */, _addTidIfNecessary(auth, request));
+}
+
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Interface that represents the credentials returned by {@link EmailAuthProvider} for
+ * {@link ProviderId}.PASSWORD
+ *
+ * @remarks
+ * Covers both {@link SignInMethod}.EMAIL_PASSWORD and
+ * {@link SignInMethod}.EMAIL_LINK.
+ *
+ * @public
+ */
+class EmailAuthCredential extends AuthCredential {
+    /** @internal */
+    constructor(
+    /** @internal */
+    _email, 
+    /** @internal */
+    _password, signInMethod, 
+    /** @internal */
+    _tenantId = null) {
+        super("password" /* ProviderId.PASSWORD */, signInMethod);
+        this._email = _email;
+        this._password = _password;
+        this._tenantId = _tenantId;
+    }
+    /** @internal */
+    static _fromEmailAndPassword(email, password) {
+        return new EmailAuthCredential(email, password, "password" /* SignInMethod.EMAIL_PASSWORD */);
+    }
+    /** @internal */
+    static _fromEmailAndCode(email, oobCode, tenantId = null) {
+        return new EmailAuthCredential(email, oobCode, "emailLink" /* SignInMethod.EMAIL_LINK */, tenantId);
+    }
+    /** {@inheritdoc AuthCredential.toJSON} */
+    toJSON() {
+        return {
+            email: this._email,
+            password: this._password,
+            signInMethod: this.signInMethod,
+            tenantId: this._tenantId
+        };
+    }
+    /**
+     * Static method to deserialize a JSON representation of an object into an {@link  AuthCredential}.
+     *
+     * @param json - Either `object` or the stringified representation of the object. When string is
+     * provided, `JSON.parse` would be called first.
+     *
+     * @returns If the JSON input does not represent an {@link AuthCredential}, null is returned.
+     */
+    static fromJSON(json) {
+        const obj = typeof json === 'string' ? JSON.parse(json) : json;
+        if ((obj === null || obj === void 0 ? void 0 : obj.email) && (obj === null || obj === void 0 ? void 0 : obj.password)) {
+            if (obj.signInMethod === "password" /* SignInMethod.EMAIL_PASSWORD */) {
+                return this._fromEmailAndPassword(obj.email, obj.password);
+            }
+            else if (obj.signInMethod === "emailLink" /* SignInMethod.EMAIL_LINK */) {
+                return this._fromEmailAndCode(obj.email, obj.password, obj.tenantId);
+            }
+        }
+        return null;
+    }
+    /** @internal */
+    async _getIdTokenResponse(auth) {
+        switch (this.signInMethod) {
+            case "password" /* SignInMethod.EMAIL_PASSWORD */:
+                const request = {
+                    returnSecureToken: true,
+                    email: this._email,
+                    password: this._password,
+                    clientType: "CLIENT_TYPE_WEB" /* RecaptchaClientType.WEB */
+                };
+                return handleRecaptchaFlow(auth, request, "signInWithPassword" /* RecaptchaActionName.SIGN_IN_WITH_PASSWORD */, signInWithPassword);
+            case "emailLink" /* SignInMethod.EMAIL_LINK */:
+                return signInWithEmailLink$1(auth, {
+                    email: this._email,
+                    oobCode: this._password
+                });
+            default:
+                _fail(auth, "internal-error" /* AuthErrorCode.INTERNAL_ERROR */);
+        }
+    }
+    /** @internal */
+    async _linkToIdToken(auth, idToken) {
+        switch (this.signInMethod) {
+            case "password" /* SignInMethod.EMAIL_PASSWORD */:
+                const request = {
+                    idToken,
+                    returnSecureToken: true,
+                    email: this._email,
+                    password: this._password,
+                    clientType: "CLIENT_TYPE_WEB" /* RecaptchaClientType.WEB */
+                };
+                return handleRecaptchaFlow(auth, request, "signUpPassword" /* RecaptchaActionName.SIGN_UP_PASSWORD */, linkEmailPassword);
+            case "emailLink" /* SignInMethod.EMAIL_LINK */:
+                return signInWithEmailLinkForLinking(auth, {
+                    idToken,
+                    email: this._email,
+                    oobCode: this._password
+                });
+            default:
+                _fail(auth, "internal-error" /* AuthErrorCode.INTERNAL_ERROR */);
+        }
+    }
+    /** @internal */
+    _getReauthenticationResolver(auth) {
+        return this._getIdTokenResponse(auth);
+    }
+}
 
 /**
  * @license
@@ -6391,6 +6818,201 @@ class OAuthCredential extends AuthCredential {
         return request;
     }
 }
+
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Maps the mode string in action code URL to Action Code Info operation.
+ *
+ * @param mode
+ */
+function parseMode(mode) {
+    switch (mode) {
+        case 'recoverEmail':
+            return "RECOVER_EMAIL" /* ActionCodeOperation.RECOVER_EMAIL */;
+        case 'resetPassword':
+            return "PASSWORD_RESET" /* ActionCodeOperation.PASSWORD_RESET */;
+        case 'signIn':
+            return "EMAIL_SIGNIN" /* ActionCodeOperation.EMAIL_SIGNIN */;
+        case 'verifyEmail':
+            return "VERIFY_EMAIL" /* ActionCodeOperation.VERIFY_EMAIL */;
+        case 'verifyAndChangeEmail':
+            return "VERIFY_AND_CHANGE_EMAIL" /* ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL */;
+        case 'revertSecondFactorAddition':
+            return "REVERT_SECOND_FACTOR_ADDITION" /* ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION */;
+        default:
+            return null;
+    }
+}
+/**
+ * Helper to parse FDL links
+ *
+ * @param url
+ */
+function parseDeepLink(url) {
+    const link = querystringDecode(extractQuerystring(url))['link'];
+    // Double link case (automatic redirect).
+    const doubleDeepLink = link
+        ? querystringDecode(extractQuerystring(link))['deep_link_id']
+        : null;
+    // iOS custom scheme links.
+    const iOSDeepLink = querystringDecode(extractQuerystring(url))['deep_link_id'];
+    const iOSDoubleDeepLink = iOSDeepLink
+        ? querystringDecode(extractQuerystring(iOSDeepLink))['link']
+        : null;
+    return iOSDoubleDeepLink || iOSDeepLink || doubleDeepLink || link || url;
+}
+/**
+ * A utility class to parse email action URLs such as password reset, email verification,
+ * email link sign in, etc.
+ *
+ * @public
+ */
+class ActionCodeURL {
+    /**
+     * @param actionLink - The link from which to extract the URL.
+     * @returns The {@link ActionCodeURL} object, or null if the link is invalid.
+     *
+     * @internal
+     */
+    constructor(actionLink) {
+        var _a, _b, _c, _d, _e, _f;
+        const searchParams = querystringDecode(extractQuerystring(actionLink));
+        const apiKey = (_a = searchParams["apiKey" /* QueryField.API_KEY */]) !== null && _a !== void 0 ? _a : null;
+        const code = (_b = searchParams["oobCode" /* QueryField.CODE */]) !== null && _b !== void 0 ? _b : null;
+        const operation = parseMode((_c = searchParams["mode" /* QueryField.MODE */]) !== null && _c !== void 0 ? _c : null);
+        // Validate API key, code and mode.
+        _assert(apiKey && code && operation, "argument-error" /* AuthErrorCode.ARGUMENT_ERROR */);
+        this.apiKey = apiKey;
+        this.operation = operation;
+        this.code = code;
+        this.continueUrl = (_d = searchParams["continueUrl" /* QueryField.CONTINUE_URL */]) !== null && _d !== void 0 ? _d : null;
+        this.languageCode = (_e = searchParams["languageCode" /* QueryField.LANGUAGE_CODE */]) !== null && _e !== void 0 ? _e : null;
+        this.tenantId = (_f = searchParams["tenantId" /* QueryField.TENANT_ID */]) !== null && _f !== void 0 ? _f : null;
+    }
+    /**
+     * Parses the email action link string and returns an {@link ActionCodeURL} if the link is valid,
+     * otherwise returns null.
+     *
+     * @param link  - The email action link string.
+     * @returns The {@link ActionCodeURL} object, or null if the link is invalid.
+     *
+     * @public
+     */
+    static parseLink(link) {
+        const actionLink = parseDeepLink(link);
+        try {
+            return new ActionCodeURL(actionLink);
+        }
+        catch (_a) {
+            return null;
+        }
+    }
+}
+
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Provider for generating {@link EmailAuthCredential}.
+ *
+ * @public
+ */
+class EmailAuthProvider {
+    constructor() {
+        /**
+         * Always set to {@link ProviderId}.PASSWORD, even for email link.
+         */
+        this.providerId = EmailAuthProvider.PROVIDER_ID;
+    }
+    /**
+     * Initialize an {@link AuthCredential} using an email and password.
+     *
+     * @example
+     * ```javascript
+     * const authCredential = EmailAuthProvider.credential(email, password);
+     * const userCredential = await signInWithCredential(auth, authCredential);
+     * ```
+     *
+     * @example
+     * ```javascript
+     * const userCredential = await signInWithEmailAndPassword(auth, email, password);
+     * ```
+     *
+     * @param email - Email address.
+     * @param password - User account password.
+     * @returns The auth provider credential.
+     */
+    static credential(email, password) {
+        return EmailAuthCredential._fromEmailAndPassword(email, password);
+    }
+    /**
+     * Initialize an {@link AuthCredential} using an email and an email link after a sign in with
+     * email link operation.
+     *
+     * @example
+     * ```javascript
+     * const authCredential = EmailAuthProvider.credentialWithLink(auth, email, emailLink);
+     * const userCredential = await signInWithCredential(auth, authCredential);
+     * ```
+     *
+     * @example
+     * ```javascript
+     * await sendSignInLinkToEmail(auth, email);
+     * // Obtain emailLink from user.
+     * const userCredential = await signInWithEmailLink(auth, email, emailLink);
+     * ```
+     *
+     * @param auth - The {@link Auth} instance used to verify the link.
+     * @param email - Email address.
+     * @param emailLink - Sign-in email link.
+     * @returns - The auth provider credential.
+     */
+    static credentialWithLink(email, emailLink) {
+        const actionCodeUrl = ActionCodeURL.parseLink(emailLink);
+        _assert(actionCodeUrl, "argument-error" /* AuthErrorCode.ARGUMENT_ERROR */);
+        return EmailAuthCredential._fromEmailAndCode(email, actionCodeUrl.code, actionCodeUrl.tenantId);
+    }
+}
+/**
+ * Always set to {@link ProviderId}.PASSWORD, even for email link.
+ */
+EmailAuthProvider.PROVIDER_ID = "password" /* ProviderId.PASSWORD */;
+/**
+ * Always set to {@link SignInMethod}.EMAIL_PASSWORD.
+ */
+EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD = "password" /* SignInMethod.EMAIL_PASSWORD */;
+/**
+ * Always set to {@link SignInMethod}.EMAIL_LINK.
+ */
+EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD = "emailLink" /* SignInMethod.EMAIL_LINK */;
 
 /**
  * @license
@@ -7138,6 +7760,93 @@ async function _signInWithCredential(auth, credential, bypassAuthState = false) 
         await auth._updateCurrentUser(userCredential.user);
     }
     return userCredential;
+}
+/**
+ * Asynchronously signs in with the given credentials.
+ *
+ * @remarks
+ * An {@link AuthProvider} can be used to generate the credential.
+ *
+ * This method is not supported by {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
+ * @param auth - The {@link Auth} instance.
+ * @param credential - The auth credential.
+ *
+ * @public
+ */
+async function signInWithCredential(auth, credential) {
+    return _signInWithCredential(_castAuth(auth), credential);
+}
+
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Updates the password policy cached in the {@link Auth} instance if a policy is already
+ * cached for the project or tenant.
+ *
+ * @remarks
+ * We only fetch the password policy if the password did not meet policy requirements and
+ * there is an existing policy cached. A developer must call validatePassword at least
+ * once for the cache to be automatically updated.
+ *
+ * @param auth - The {@link Auth} instance.
+ *
+ * @private
+ */
+async function recachePasswordPolicy(auth) {
+    const authInternal = _castAuth(auth);
+    if (authInternal._getPasswordPolicyInternal()) {
+        await authInternal._updatePasswordPolicy();
+    }
+}
+/**
+ * Asynchronously signs in using an email and password.
+ *
+ * @remarks
+ * Fails with an error if the email address and password do not match. When
+ * {@link https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection | Email Enumeration Protection}
+ * is enabled, this method fails with "auth/invalid-credential" in case of an invalid
+ * email/password.
+ *
+ * This method is not supported on {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
+ * Note: The user's password is NOT the password used to access the user's email account. The
+ * email address serves as a unique identifier for the user, and the password is used to access
+ * the user's account in your Firebase project. See also: {@link createUserWithEmailAndPassword}.
+ *
+ *
+ * @param auth - The {@link Auth} instance.
+ * @param email - The users email address.
+ * @param password - The users password.
+ *
+ * @public
+ */
+function signInWithEmailAndPassword(auth, email, password) {
+    if (_isFirebaseServerApp(auth.app)) {
+        return Promise.reject(_serverAppCurrentUserOperationNotSupportedError(auth));
+    }
+    return signInWithCredential(getModularInstance(auth), EmailAuthProvider.credential(email, password)).catch(async (error) => {
+        if (error.code === `auth/${"password-does-not-meet-requirements" /* AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS */}`) {
+            void recachePasswordPolicy(auth);
+        }
+        throw error;
+    });
 }
 /**
  * Adds an observer for changes to the signed-in user's ID token.
@@ -9501,16 +10210,158 @@ registerAuth("Browser" /* ClientPlatform.BROWSER */);
 
 /* generated by Svelte v3.59.1 */
 
-function create_fragment(ctx) {
-	let section;
+function create_if_block(ctx) {
+	let div1;
 	let div0;
+	let button;
+	let t0;
+	let t1;
+	let h2;
+	let t2;
+	let t3;
+	let form;
+	let label0;
+	let t4;
+	let t5;
+	let input0;
+	let t6;
+	let label1;
+	let t7;
+	let t8;
+	let input1;
+	let mounted;
+	let dispose;
+
+	return {
+		c() {
+			div1 = element("div");
+			div0 = element("div");
+			button = element("button");
+			t0 = text("Tmam");
+			t1 = space();
+			h2 = element("h2");
+			t2 = text("Login");
+			t3 = space();
+			form = element("form");
+			label0 = element("label");
+			t4 = text("Username:");
+			t5 = space();
+			input0 = element("input");
+			t6 = space();
+			label1 = element("label");
+			t7 = text("Password:");
+			t8 = space();
+			input1 = element("input");
+			this.h();
+		},
+		l(nodes) {
+			div1 = claim_element(nodes, "DIV", { class: true });
+			var div1_nodes = children(div1);
+			div0 = claim_element(div1_nodes, "DIV", { class: true });
+			var div0_nodes = children(div0);
+			button = claim_element(div0_nodes, "BUTTON", { class: true, "aria-label": true });
+			var button_nodes = children(button);
+			t0 = claim_text(button_nodes, "Tmam");
+			button_nodes.forEach(detach);
+			t1 = claim_space(div0_nodes);
+			h2 = claim_element(div0_nodes, "H2", {});
+			var h2_nodes = children(h2);
+			t2 = claim_text(h2_nodes, "Login");
+			h2_nodes.forEach(detach);
+			t3 = claim_space(div0_nodes);
+			form = claim_element(div0_nodes, "FORM", {});
+			var form_nodes = children(form);
+			label0 = claim_element(form_nodes, "LABEL", { for: true });
+			var label0_nodes = children(label0);
+			t4 = claim_text(label0_nodes, "Username:");
+			label0_nodes.forEach(detach);
+			t5 = claim_space(form_nodes);
+			input0 = claim_element(form_nodes, "INPUT", { type: true, id: true });
+			t6 = claim_space(form_nodes);
+			label1 = claim_element(form_nodes, "LABEL", { for: true });
+			var label1_nodes = children(label1);
+			t7 = claim_text(label1_nodes, "Password:");
+			label1_nodes.forEach(detach);
+			t8 = claim_space(form_nodes);
+			input1 = claim_element(form_nodes, "INPUT", { type: true, id: true });
+			form_nodes.forEach(detach);
+			div0_nodes.forEach(detach);
+			div1_nodes.forEach(detach);
+			this.h();
+		},
+		h() {
+			attr(button, "class", "close svelte-242xd4");
+			attr(button, "aria-label", "Close modal");
+			attr(label0, "for", "username");
+			attr(input0, "type", "text");
+			attr(input0, "id", "username");
+			input0.required = true;
+			attr(label1, "for", "password");
+			attr(input1, "type", "password");
+			attr(input1, "id", "password");
+			input1.required = true;
+			attr(div0, "class", "modal-content svelte-242xd4");
+			attr(div1, "class", "modal svelte-242xd4");
+		},
+		m(target, anchor) {
+			insert_hydration(target, div1, anchor);
+			append_hydration(div1, div0);
+			append_hydration(div0, button);
+			append_hydration(button, t0);
+			append_hydration(div0, t1);
+			append_hydration(div0, h2);
+			append_hydration(h2, t2);
+			append_hydration(div0, t3);
+			append_hydration(div0, form);
+			append_hydration(form, label0);
+			append_hydration(label0, t4);
+			append_hydration(form, t5);
+			append_hydration(form, input0);
+			set_input_value(input0, /*username*/ ctx[1]);
+			append_hydration(form, t6);
+			append_hydration(form, label1);
+			append_hydration(label1, t7);
+			append_hydration(form, t8);
+			append_hydration(form, input1);
+			set_input_value(input1, /*password*/ ctx[2]);
+
+			if (!mounted) {
+				dispose = [
+					listen(button, "click", /*click_handler_2*/ ctx[7]),
+					listen(input0, "input", /*input0_input_handler*/ ctx[8]),
+					listen(input1, "input", /*input1_input_handler*/ ctx[9]),
+					listen(form, "submit", /*handleLogin*/ ctx[3])
+				];
+
+				mounted = true;
+			}
+		},
+		p(ctx, dirty) {
+			if (dirty & /*username*/ 2 && input0.value !== /*username*/ ctx[1]) {
+				set_input_value(input0, /*username*/ ctx[1]);
+			}
+
+			if (dirty & /*password*/ 4 && input1.value !== /*password*/ ctx[2]) {
+				set_input_value(input1, /*password*/ ctx[2]);
+			}
+		},
+		d(detaching) {
+			if (detaching) detach(div1);
+			mounted = false;
+			run_all(dispose);
+		}
+	};
+}
+
+function create_fragment(ctx) {
+	let div;
 	let h1;
 	let t0;
 	let t1;
 	let img;
 	let img_src_value;
 	let t2;
-	let h20;
+	let h2;
 	let t3;
 	let t4;
 	let table;
@@ -9518,59 +10369,38 @@ function create_fragment(ctx) {
 	let tr0;
 	let th0;
 	let t5;
-	let t6;
 	let th1;
+	let t6;
 	let t7;
-	let t8;
 	let tbody;
 	let tr1;
 	let td0;
 	let button0;
+	let t8;
+	let td1;
 	let t9;
 	let t10;
-	let td1;
-	let t11;
-	let t12;
 	let tr2;
 	let td2;
 	let button1;
-	let t13;
-	let t14;
+	let t11;
 	let td3;
-	let t15;
-	let t16;
-	let div2;
-	let div1;
-	let span;
-	let t17;
-	let t18;
-	let h21;
-	let t19;
-	let t20;
-	let form;
-	let label0;
-	let t21;
-	let t22;
-	let input0;
-	let t23;
-	let label1;
-	let t24;
-	let t25;
-	let input1;
-	let t26;
-	let button2;
-	let t27;
+	let t12;
+	let t13;
+	let if_block_anchor;
+	let mounted;
+	let dispose;
+	let if_block = /*showModal*/ ctx[0] && create_if_block(ctx);
 
 	return {
 		c() {
-			section = element("section");
-			div0 = element("div");
+			div = element("div");
 			h1 = element("h1");
 			t0 = text("Welcome to Bab Movie-night");
 			t1 = space();
 			img = element("img");
 			t2 = space();
-			h20 = element("h2");
+			h2 = element("h2");
 			t3 = text("Movie Title on Thursday 29th @ Bab-initiative");
 			t4 = space();
 			table = element("table");
@@ -9578,68 +10408,44 @@ function create_fragment(ctx) {
 			tr0 = element("tr");
 			th0 = element("th");
 			t5 = text("Register here");
-			t6 = space();
 			th1 = element("th");
-			t7 = text("Waiting List - Register");
-			t8 = space();
+			t6 = text("Waiting List - Register");
+			t7 = space();
 			tbody = element("tbody");
 			tr1 = element("tr");
 			td0 = element("td");
 			button0 = element("button");
-			t9 = text("Register here");
-			t10 = space();
+			t8 = text("Register here");
 			td1 = element("td");
-			t11 = text("Waiting List - Register");
-			t12 = space();
+			t9 = text("Waiting List - Register");
+			t10 = space();
 			tr2 = element("tr");
 			td2 = element("td");
 			button1 = element("button");
-			t13 = text("Register here");
-			t14 = space();
+			t11 = text("Register here");
 			td3 = element("td");
-			t15 = text("Waiting List - Register");
-			t16 = space();
-			div2 = element("div");
-			div1 = element("div");
-			span = element("span");
-			t17 = text("×");
-			t18 = space();
-			h21 = element("h2");
-			t19 = text("Login");
-			t20 = space();
-			form = element("form");
-			label0 = element("label");
-			t21 = text("Username:");
-			t22 = space();
-			input0 = element("input");
-			t23 = space();
-			label1 = element("label");
-			t24 = text("Password:");
-			t25 = space();
-			input1 = element("input");
-			t26 = space();
-			button2 = element("button");
-			t27 = text("Login");
+			t12 = text("Waiting List - Register");
+			t13 = space();
+			if (if_block) if_block.c();
+			if_block_anchor = empty();
 			this.h();
 		},
 		l(nodes) {
-			section = claim_element(nodes, "SECTION", { class: true });
-			var section_nodes = children(section);
-			div0 = claim_element(section_nodes, "DIV", { class: true });
-			var div0_nodes = children(div0);
-			h1 = claim_element(div0_nodes, "H1", {});
+			div = claim_element(nodes, "DIV", { class: true });
+			var div_nodes = children(div);
+			h1 = claim_element(div_nodes, "H1", {});
 			var h1_nodes = children(h1);
 			t0 = claim_text(h1_nodes, "Welcome to Bab Movie-night");
 			h1_nodes.forEach(detach);
-			t1 = claim_space(div0_nodes);
-			img = claim_element(div0_nodes, "IMG", { src: true, alt: true, class: true });
-			t2 = claim_space(div0_nodes);
-			h20 = claim_element(div0_nodes, "H2", {});
-			var h20_nodes = children(h20);
-			t3 = claim_text(h20_nodes, "Movie Title on Thursday 29th @ Bab-initiative");
-			h20_nodes.forEach(detach);
-			t4 = claim_space(div0_nodes);
-			table = claim_element(div0_nodes, "TABLE", { class: true });
+			t1 = claim_space(div_nodes);
+			img = claim_element(div_nodes, "IMG", { src: true, alt: true, class: true });
+			t2 = claim_space(div_nodes);
+			h2 = claim_element(div_nodes, "H2", {});
+			var h2_nodes = children(h2);
+			t3 = claim_text(h2_nodes, "Movie Title on Thursday 29th @ Bab-initiative");
+			h2_nodes.forEach(detach);
+			t4 = claim_space(div_nodes);
+			table = claim_element(div_nodes, "TABLE", { class: true });
 			var table_nodes = children(table);
 			thead = claim_element(table_nodes, "THEAD", {});
 			var thead_nodes = children(thead);
@@ -9649,223 +10455,208 @@ function create_fragment(ctx) {
 			var th0_nodes = children(th0);
 			t5 = claim_text(th0_nodes, "Register here");
 			th0_nodes.forEach(detach);
-			t6 = claim_space(tr0_nodes);
 			th1 = claim_element(tr0_nodes, "TH", { class: true });
 			var th1_nodes = children(th1);
-			t7 = claim_text(th1_nodes, "Waiting List - Register");
+			t6 = claim_text(th1_nodes, "Waiting List - Register");
 			th1_nodes.forEach(detach);
 			tr0_nodes.forEach(detach);
 			thead_nodes.forEach(detach);
-			t8 = claim_space(table_nodes);
+			t7 = claim_space(table_nodes);
 			tbody = claim_element(table_nodes, "TBODY", {});
 			var tbody_nodes = children(tbody);
 			tr1 = claim_element(tbody_nodes, "TR", {});
 			var tr1_nodes = children(tr1);
 			td0 = claim_element(tr1_nodes, "TD", { class: true });
 			var td0_nodes = children(td0);
-			button0 = claim_element(td0_nodes, "BUTTON", { onclick: true, class: true });
+			button0 = claim_element(td0_nodes, "BUTTON", { class: true });
 			var button0_nodes = children(button0);
-			t9 = claim_text(button0_nodes, "Register here");
+			t8 = claim_text(button0_nodes, "Register here");
 			button0_nodes.forEach(detach);
 			td0_nodes.forEach(detach);
-			t10 = claim_space(tr1_nodes);
 			td1 = claim_element(tr1_nodes, "TD", { class: true });
 			var td1_nodes = children(td1);
-			t11 = claim_text(td1_nodes, "Waiting List - Register");
+			t9 = claim_text(td1_nodes, "Waiting List - Register");
 			td1_nodes.forEach(detach);
 			tr1_nodes.forEach(detach);
-			t12 = claim_space(tbody_nodes);
+			t10 = claim_space(tbody_nodes);
 			tr2 = claim_element(tbody_nodes, "TR", {});
 			var tr2_nodes = children(tr2);
 			td2 = claim_element(tr2_nodes, "TD", { class: true });
 			var td2_nodes = children(td2);
-			button1 = claim_element(td2_nodes, "BUTTON", { onclick: true, class: true });
+			button1 = claim_element(td2_nodes, "BUTTON", { class: true });
 			var button1_nodes = children(button1);
-			t13 = claim_text(button1_nodes, "Register here");
+			t11 = claim_text(button1_nodes, "Register here");
 			button1_nodes.forEach(detach);
 			td2_nodes.forEach(detach);
-			t14 = claim_space(tr2_nodes);
 			td3 = claim_element(tr2_nodes, "TD", { class: true });
 			var td3_nodes = children(td3);
-			t15 = claim_text(td3_nodes, "Waiting List - Register");
+			t12 = claim_text(td3_nodes, "Waiting List - Register");
 			td3_nodes.forEach(detach);
 			tr2_nodes.forEach(detach);
 			tbody_nodes.forEach(detach);
 			table_nodes.forEach(detach);
-			div0_nodes.forEach(detach);
-			t16 = claim_space(section_nodes);
-			div2 = claim_element(section_nodes, "DIV", { id: true, class: true });
-			var div2_nodes = children(div2);
-			div1 = claim_element(div2_nodes, "DIV", { class: true });
-			var div1_nodes = children(div1);
-			span = claim_element(div1_nodes, "SPAN", { class: true, onclick: true });
-			var span_nodes = children(span);
-			t17 = claim_text(span_nodes, "×");
-			span_nodes.forEach(detach);
-			t18 = claim_space(div1_nodes);
-			h21 = claim_element(div1_nodes, "H2", {});
-			var h21_nodes = children(h21);
-			t19 = claim_text(h21_nodes, "Login");
-			h21_nodes.forEach(detach);
-			t20 = claim_space(div1_nodes);
-			form = claim_element(div1_nodes, "FORM", { id: true });
-			var form_nodes = children(form);
-			label0 = claim_element(form_nodes, "LABEL", { for: true });
-			var label0_nodes = children(label0);
-			t21 = claim_text(label0_nodes, "Username:");
-			label0_nodes.forEach(detach);
-			t22 = claim_space(form_nodes);
-			input0 = claim_element(form_nodes, "INPUT", { type: true, id: true, name: true });
-			t23 = claim_space(form_nodes);
-			label1 = claim_element(form_nodes, "LABEL", { for: true });
-			var label1_nodes = children(label1);
-			t24 = claim_text(label1_nodes, "Password:");
-			label1_nodes.forEach(detach);
-			t25 = claim_space(form_nodes);
-			input1 = claim_element(form_nodes, "INPUT", { type: true, id: true, name: true });
-			t26 = claim_space(form_nodes);
-			button2 = claim_element(form_nodes, "BUTTON", { type: true, class: true });
-			var button2_nodes = children(button2);
-			t27 = claim_text(button2_nodes, "Login");
-			button2_nodes.forEach(detach);
-			form_nodes.forEach(detach);
-			div1_nodes.forEach(detach);
-			div2_nodes.forEach(detach);
-			section_nodes.forEach(detach);
+			div_nodes.forEach(detach);
+			t13 = claim_space(nodes);
+			if (if_block) if_block.l(nodes);
+			if_block_anchor = empty();
 			this.h();
 		},
 		h() {
-			if (!src_url_equal(img.src, img_src_value = "https://m.media-amazon.com/images/M/MV5BZTM3ZjA3NTctZThkYy00ODYyLTk2ZjItZmE0MmZlMTk3YjQwXkEyXkFqcGdeQXVyNTA4NzY1MzY@._V1_.jpg")) attr(img, "src", img_src_value);
+			if (!src_url_equal(img.src, img_src_value = "movie-poster.jpg")) attr(img, "src", img_src_value);
 			attr(img, "alt", "Scent of a Woman Poster");
-			attr(img, "class", "poster svelte-poxaeo");
-			attr(th0, "class", "svelte-poxaeo");
-			attr(th1, "class", "svelte-poxaeo");
-			attr(button0, "onclick", "openModal()");
-			attr(button0, "class", "svelte-poxaeo");
-			attr(td0, "class", "svelte-poxaeo");
-			attr(td1, "class", "svelte-poxaeo");
-			attr(button1, "onclick", "openModal()");
-			attr(button1, "class", "svelte-poxaeo");
-			attr(td2, "class", "svelte-poxaeo");
-			attr(td3, "class", "svelte-poxaeo");
-			attr(table, "class", "svelte-poxaeo");
-			attr(div0, "class", "container svelte-poxaeo");
-			attr(span, "class", "close svelte-poxaeo");
-			attr(span, "onclick", "closeModal()");
-			attr(label0, "for", "username");
-			attr(input0, "type", "text");
-			attr(input0, "id", "username");
-			attr(input0, "name", "username");
-			input0.required = true;
-			attr(label1, "for", "password");
-			attr(input1, "type", "password");
-			attr(input1, "id", "password");
-			attr(input1, "name", "password");
-			input1.required = true;
-			attr(button2, "type", "submit");
-			attr(button2, "class", "svelte-poxaeo");
-			attr(form, "id", "login-form");
-			attr(div1, "class", "modal-content svelte-poxaeo");
-			attr(div2, "id", "modal");
-			attr(div2, "class", "modal svelte-poxaeo");
-			attr(section, "class", "section-container");
+			attr(img, "class", "poster svelte-242xd4");
+			attr(th0, "class", "svelte-242xd4");
+			attr(th1, "class", "svelte-242xd4");
+			attr(button0, "class", "svelte-242xd4");
+			attr(td0, "class", "svelte-242xd4");
+			attr(td1, "class", "svelte-242xd4");
+			attr(button1, "class", "svelte-242xd4");
+			attr(td2, "class", "svelte-242xd4");
+			attr(td3, "class", "svelte-242xd4");
+			attr(table, "class", "svelte-242xd4");
+			attr(div, "class", "container");
 		},
 		m(target, anchor) {
-			insert_hydration(target, section, anchor);
-			append_hydration(section, div0);
-			append_hydration(div0, h1);
+			insert_hydration(target, div, anchor);
+			append_hydration(div, h1);
 			append_hydration(h1, t0);
-			append_hydration(div0, t1);
-			append_hydration(div0, img);
-			append_hydration(div0, t2);
-			append_hydration(div0, h20);
-			append_hydration(h20, t3);
-			append_hydration(div0, t4);
-			append_hydration(div0, table);
+			append_hydration(div, t1);
+			append_hydration(div, img);
+			append_hydration(div, t2);
+			append_hydration(div, h2);
+			append_hydration(h2, t3);
+			append_hydration(div, t4);
+			append_hydration(div, table);
 			append_hydration(table, thead);
 			append_hydration(thead, tr0);
 			append_hydration(tr0, th0);
 			append_hydration(th0, t5);
-			append_hydration(tr0, t6);
 			append_hydration(tr0, th1);
-			append_hydration(th1, t7);
-			append_hydration(table, t8);
+			append_hydration(th1, t6);
+			append_hydration(table, t7);
 			append_hydration(table, tbody);
 			append_hydration(tbody, tr1);
 			append_hydration(tr1, td0);
 			append_hydration(td0, button0);
-			append_hydration(button0, t9);
-			append_hydration(tr1, t10);
+			append_hydration(button0, t8);
 			append_hydration(tr1, td1);
-			append_hydration(td1, t11);
-			append_hydration(tbody, t12);
+			append_hydration(td1, t9);
+			append_hydration(tbody, t10);
 			append_hydration(tbody, tr2);
 			append_hydration(tr2, td2);
 			append_hydration(td2, button1);
-			append_hydration(button1, t13);
-			append_hydration(tr2, t14);
+			append_hydration(button1, t11);
 			append_hydration(tr2, td3);
-			append_hydration(td3, t15);
-			append_hydration(section, t16);
-			append_hydration(section, div2);
-			append_hydration(div2, div1);
-			append_hydration(div1, span);
-			append_hydration(span, t17);
-			append_hydration(div1, t18);
-			append_hydration(div1, h21);
-			append_hydration(h21, t19);
-			append_hydration(div1, t20);
-			append_hydration(div1, form);
-			append_hydration(form, label0);
-			append_hydration(label0, t21);
-			append_hydration(form, t22);
-			append_hydration(form, input0);
-			append_hydration(form, t23);
-			append_hydration(form, label1);
-			append_hydration(label1, t24);
-			append_hydration(form, t25);
-			append_hydration(form, input1);
-			append_hydration(form, t26);
-			append_hydration(form, button2);
-			append_hydration(button2, t27);
+			append_hydration(td3, t12);
+			insert_hydration(target, t13, anchor);
+			if (if_block) if_block.m(target, anchor);
+			insert_hydration(target, if_block_anchor, anchor);
+
+			if (!mounted) {
+				dispose = [
+					listen(button0, "click", /*click_handler*/ ctx[5]),
+					listen(button1, "click", /*click_handler_1*/ ctx[6])
+				];
+
+				mounted = true;
+			}
 		},
-		p: noop$1,
+		p(ctx, [dirty]) {
+			if (/*showModal*/ ctx[0]) {
+				if (if_block) {
+					if_block.p(ctx, dirty);
+				} else {
+					if_block = create_if_block(ctx);
+					if_block.c();
+					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+				}
+			} else if (if_block) {
+				if_block.d(1);
+				if_block = null;
+			}
+		},
 		i: noop$1,
 		o: noop$1,
 		d(detaching) {
-			if (detaching) detach(section);
+			if (detaching) detach(div);
+			if (detaching) detach(t13);
+			if (if_block) if_block.d(detaching);
+			if (detaching) detach(if_block_anchor);
+			mounted = false;
+			run_all(dispose);
 		}
 	};
 }
 
 function instance($$self, $$props, $$invalidate) {
 	let { props } = $$props;
+	let showModal = false;
+	let username = "";
+	let password = "";
 
-	const firebaseConfig = {
-		apiKey: "AIzaSyDs9ndJnCTjNCpUAoMSXJ8pWpdZ-wQuB6s",
-		authDomain: "bab-movie.firebaseapp.com",
-		projectId: "bab-movie",
-		storageBucket: "bab-movie.appspot.com",
-		messagingSenderId: "1019810308666",
-		appId: "1:1019810308666:web:1fccb865cdc00dad338b03"
-	};
-
+	// Firebase config and initialization
 	onMount(() => {
+		const firebaseConfig = {
+			apiKey: "YOUR_API_KEY",
+			authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+			projectId: "YOUR_PROJECT_ID",
+			storageBucket: "YOUR_PROJECT_ID.appspot.com",
+			messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+			appId: "YOUR_APP_ID"
+		};
+
 		const app = initializeApp(firebaseConfig);
 		getAuth(app);
 	});
 
-	$$self.$$set = $$props => {
-		if ('props' in $$props) $$invalidate(0, props = $$props.props);
+	const handleLogin = async e => {
+		e.preventDefault();
+
+		try {
+			await signInWithEmailAndPassword(auth, username, password);
+			alert("Login successful");
+			$$invalidate(0, showModal = false);
+		} catch(error) {
+			alert("Error: " + error.message);
+		}
 	};
 
-	return [props];
+	const click_handler = () => $$invalidate(0, showModal = true);
+	const click_handler_1 = () => $$invalidate(0, showModal = true);
+	const click_handler_2 = () => $$invalidate(0, showModal = false);
+
+	function input0_input_handler() {
+		username = this.value;
+		$$invalidate(1, username);
+	}
+
+	function input1_input_handler() {
+		password = this.value;
+		$$invalidate(2, password);
+	}
+
+	$$self.$$set = $$props => {
+		if ('props' in $$props) $$invalidate(4, props = $$props.props);
+	};
+
+	return [
+		showModal,
+		username,
+		password,
+		handleLogin,
+		props,
+		click_handler,
+		click_handler_1,
+		click_handler_2,
+		input0_input_handler,
+		input1_input_handler
+	];
 }
 
 class Component extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance, create_fragment, safe_not_equal, { props: 0 });
+		init(this, options, instance, create_fragment, safe_not_equal, { props: 4 });
 	}
 }
 
