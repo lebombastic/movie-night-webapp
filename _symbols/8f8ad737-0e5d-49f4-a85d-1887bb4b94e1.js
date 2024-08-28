@@ -1,4 +1,4 @@
-// New Block - Updated August 27, 2024
+// New Block - Updated August 28, 2024
 function noop$1() { }
 function run(fn) {
     return fn();
@@ -10237,7 +10237,7 @@ function create_if_block(ctx) {
 			div1 = element("div");
 			div0 = element("div");
 			button = element("button");
-			t0 = text("Tmam");
+			t0 = text("×");
 			t1 = space();
 			h2 = element("h2");
 			t2 = text("Login");
@@ -10261,7 +10261,7 @@ function create_if_block(ctx) {
 			var div0_nodes = children(div0);
 			button = claim_element(div0_nodes, "BUTTON", { class: true, "aria-label": true });
 			var button_nodes = children(button);
-			t0 = claim_text(button_nodes, "Tmam");
+			t0 = claim_text(button_nodes, "×");
 			button_nodes.forEach(detach);
 			t1 = claim_space(div0_nodes);
 			h2 = claim_element(div0_nodes, "H2", {});
@@ -10290,7 +10290,7 @@ function create_if_block(ctx) {
 			this.h();
 		},
 		h() {
-			attr(button, "class", "close svelte-242xd4");
+			attr(button, "class", "close svelte-1e7xhg2");
 			attr(button, "aria-label", "Close modal");
 			attr(label0, "for", "username");
 			attr(input0, "type", "text");
@@ -10300,8 +10300,8 @@ function create_if_block(ctx) {
 			attr(input1, "type", "password");
 			attr(input1, "id", "password");
 			input1.required = true;
-			attr(div0, "class", "modal-content svelte-242xd4");
-			attr(div1, "class", "modal svelte-242xd4");
+			attr(div0, "class", "modal-content svelte-1e7xhg2");
+			attr(div1, "class", "modal svelte-1e7xhg2");
 		},
 		m(target, anchor) {
 			insert_hydration(target, div1, anchor);
@@ -10502,19 +10502,19 @@ function create_fragment(ctx) {
 			this.h();
 		},
 		h() {
-			if (!src_url_equal(img.src, img_src_value = "movie-poster.jpg")) attr(img, "src", img_src_value);
+			if (!src_url_equal(img.src, img_src_value = "https://media.posterlounge.com/img/products/690000/682307/682307_poster.jpg")) attr(img, "src", img_src_value);
 			attr(img, "alt", "Scent of a Woman Poster");
-			attr(img, "class", "poster svelte-242xd4");
-			attr(th0, "class", "svelte-242xd4");
-			attr(th1, "class", "svelte-242xd4");
-			attr(button0, "class", "svelte-242xd4");
-			attr(td0, "class", "svelte-242xd4");
-			attr(td1, "class", "svelte-242xd4");
-			attr(button1, "class", "svelte-242xd4");
-			attr(td2, "class", "svelte-242xd4");
-			attr(td3, "class", "svelte-242xd4");
-			attr(table, "class", "svelte-242xd4");
-			attr(div, "class", "container");
+			attr(img, "class", "poster svelte-1e7xhg2");
+			attr(th0, "class", "svelte-1e7xhg2");
+			attr(th1, "class", "svelte-1e7xhg2");
+			attr(button0, "class", "svelte-1e7xhg2");
+			attr(td0, "class", "svelte-1e7xhg2");
+			attr(td1, "class", "svelte-1e7xhg2");
+			attr(button1, "class", "svelte-1e7xhg2");
+			attr(td2, "class", "svelte-1e7xhg2");
+			attr(td3, "class", "svelte-1e7xhg2");
+			attr(table, "class", "svelte-1e7xhg2");
+			attr(div, "class", "section-container container");
 		},
 		m(target, anchor) {
 			insert_hydration(target, div, anchor);
@@ -10597,12 +10597,12 @@ function instance($$self, $$props, $$invalidate) {
 	// Firebase config and initialization
 	onMount(() => {
 		const firebaseConfig = {
-			apiKey: "YOUR_API_KEY",
-			authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-			projectId: "YOUR_PROJECT_ID",
-			storageBucket: "YOUR_PROJECT_ID.appspot.com",
-			messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-			appId: "YOUR_APP_ID"
+			apiKey: "AIzaSyDs9ndJnCTjNCpUAoMSXJ8pWpdZ-wQuB6s",
+			authDomain: "bab-movie.firebaseapp.com",
+			projectId: "bab-movie",
+			storageBucket: "bab-movie.appspot.com",
+			messagingSenderId: "1019810308666",
+			appId: "1:1019810308666:web:1fccb865cdc00dad338b03"
 		};
 
 		const app = initializeApp(firebaseConfig);
