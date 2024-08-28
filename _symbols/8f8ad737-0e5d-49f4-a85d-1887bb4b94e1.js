@@ -10290,7 +10290,7 @@ function create_if_block(ctx) {
 			this.h();
 		},
 		h() {
-			attr(button, "class", "close svelte-1e7xhg2");
+			attr(button, "class", "close svelte-o523bq");
 			attr(button, "aria-label", "Close modal");
 			attr(label0, "for", "username");
 			attr(input0, "type", "text");
@@ -10300,8 +10300,8 @@ function create_if_block(ctx) {
 			attr(input1, "type", "password");
 			attr(input1, "id", "password");
 			input1.required = true;
-			attr(div0, "class", "modal-content svelte-1e7xhg2");
-			attr(div1, "class", "modal svelte-1e7xhg2");
+			attr(div0, "class", "modal-content svelte-o523bq");
+			attr(div1, "class", "modal svelte-o523bq");
 		},
 		m(target, anchor) {
 			insert_hydration(target, div1, anchor);
@@ -10504,17 +10504,17 @@ function create_fragment(ctx) {
 		h() {
 			if (!src_url_equal(img.src, img_src_value = "https://media.posterlounge.com/img/products/690000/682307/682307_poster.jpg")) attr(img, "src", img_src_value);
 			attr(img, "alt", "Scent of a Woman Poster");
-			attr(img, "class", "poster svelte-1e7xhg2");
-			attr(th0, "class", "svelte-1e7xhg2");
-			attr(th1, "class", "svelte-1e7xhg2");
-			attr(button0, "class", "svelte-1e7xhg2");
-			attr(td0, "class", "svelte-1e7xhg2");
-			attr(td1, "class", "svelte-1e7xhg2");
-			attr(button1, "class", "svelte-1e7xhg2");
-			attr(td2, "class", "svelte-1e7xhg2");
-			attr(td3, "class", "svelte-1e7xhg2");
-			attr(table, "class", "svelte-1e7xhg2");
-			attr(div, "class", "section-container container");
+			attr(img, "class", "poster svelte-o523bq");
+			attr(th0, "class", "svelte-o523bq");
+			attr(th1, "class", "svelte-o523bq");
+			attr(button0, "class", "svelte-o523bq");
+			attr(td0, "class", "svelte-o523bq");
+			attr(td1, "class", "svelte-o523bq");
+			attr(button1, "class", "svelte-o523bq");
+			attr(td2, "class", "svelte-o523bq");
+			attr(td3, "class", "svelte-o523bq");
+			attr(table, "class", "svelte-o523bq");
+			attr(div, "class", "section-container container svelte-o523bq");
 		},
 		m(target, anchor) {
 			insert_hydration(target, div, anchor);
