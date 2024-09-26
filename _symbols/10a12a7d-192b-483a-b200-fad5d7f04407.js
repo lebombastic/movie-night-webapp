@@ -166,6 +166,10 @@ function text(data) {
 function space() {
     return text(' ');
 }
+function listen(node, event, handler, options) {
+    node.addEventListener(event, handler, options);
+    return () => node.removeEventListener(event, handler, options);
+}
 function attr(node, attribute, value) {
     if (value == null)
         node.removeAttribute(attribute);
@@ -566,6 +570,8 @@ function create_fragment(ctx) {
 	let button2;
 	let a1;
 	let t14;
+	let mounted;
+	let dispose;
 
 	return {
 		c() {
@@ -613,7 +619,7 @@ function create_fragment(ctx) {
 			t2 = claim_space(section_nodes);
 			input1 = claim_element(section_nodes, "INPUT", { type: true, id: true, placeholder: true });
 			t3 = claim_space(section_nodes);
-			button0 = claim_element(section_nodes, "BUTTON", { onclick: true });
+			button0 = claim_element(section_nodes, "BUTTON", {});
 			var button0_nodes = children(button0);
 			t4 = claim_text(button0_nodes, "Register");
 			button0_nodes.forEach(detach);
@@ -665,7 +671,6 @@ function create_fragment(ctx) {
 			attr(input1, "type", "password");
 			attr(input1, "id", "passwordInput");
 			attr(input1, "placeholder", "Enter password");
-			attr(button0, "onclick", "registerUser()");
 			attr(ul0, "id", "registeredList");
 			attr(ul1, "id", "waitingListItems");
 			attr(div0, "id", "waitingList");
@@ -710,12 +715,19 @@ function create_fragment(ctx) {
 			append_hydration(div1, button2);
 			append_hydration(button2, a1);
 			append_hydration(a1, t14);
+
+			if (!mounted) {
+				dispose = listen(button0, "click", /*registerUser*/ ctx[0]);
+				mounted = true;
+			}
 		},
 		p: noop,
 		i: noop,
 		o: noop,
 		d(detaching) {
 			if (detaching) detach(section);
+			mounted = false;
+			dispose();
 		}
 	};
 }
@@ -728,17 +740,24 @@ function instance($$self, $$props, $$invalidate) {
 		JSON.parse(sessionStorage.getItem('waitingList')) || [];
 	});
 
+	function registerUser() {
+		{
+			alert('Please enter both name and password.');
+			return;
+		}
+	}
+
 	$$self.$$set = $$props => {
-		if ('props' in $$props) $$invalidate(0, props = $$props.props);
+		if ('props' in $$props) $$invalidate(1, props = $$props.props);
 	};
 
-	return [props];
+	return [registerUser, props];
 }
 
 class Component extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance, create_fragment, safe_not_equal, { props: 0 });
+		init(this, options, instance, create_fragment, safe_not_equal, { props: 1 });
 	}
 }
 
