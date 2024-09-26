@@ -544,7 +544,7 @@ function create_fragment(ctx) {
 	let t2;
 	let input1;
 	let t3;
-	let button;
+	let button0;
 	let t4;
 	let t5;
 	let h20;
@@ -559,9 +559,11 @@ function create_fragment(ctx) {
 	let ul1;
 	let t11;
 	let div1;
+	let button1;
 	let a0;
 	let t12;
 	let t13;
+	let button2;
 	let a1;
 	let t14;
 
@@ -575,7 +577,7 @@ function create_fragment(ctx) {
 			t2 = space();
 			input1 = element("input");
 			t3 = space();
-			button = element("button");
+			button0 = element("button");
 			t4 = text("Register");
 			t5 = space();
 			h20 = element("h2");
@@ -590,9 +592,11 @@ function create_fragment(ctx) {
 			ul1 = element("ul");
 			t11 = space();
 			div1 = element("div");
+			button1 = element("button");
 			a0 = element("a");
 			t12 = text("Add to Google Calendar");
 			t13 = space();
+			button2 = element("button");
 			a1 = element("a");
 			t14 = text("Send via WhatsApp");
 			this.h();
@@ -609,10 +613,10 @@ function create_fragment(ctx) {
 			t2 = claim_space(section_nodes);
 			input1 = claim_element(section_nodes, "INPUT", { type: true, id: true, placeholder: true });
 			t3 = claim_space(section_nodes);
-			button = claim_element(section_nodes, "BUTTON", { onclick: true });
-			var button_nodes = children(button);
-			t4 = claim_text(button_nodes, "Register");
-			button_nodes.forEach(detach);
+			button0 = claim_element(section_nodes, "BUTTON", { onclick: true });
+			var button0_nodes = children(button0);
+			t4 = claim_text(button0_nodes, "Register");
+			button0_nodes.forEach(detach);
 			t5 = claim_space(section_nodes);
 			h20 = claim_element(section_nodes, "H2", {});
 			var h20_nodes = children(h20);
@@ -635,15 +639,21 @@ function create_fragment(ctx) {
 			t11 = claim_space(section_nodes);
 			div1 = claim_element(section_nodes, "DIV", { class: true });
 			var div1_nodes = children(div1);
-			a0 = claim_element(div1_nodes, "A", { href: true, class: true, target: true });
+			button1 = claim_element(div1_nodes, "BUTTON", {});
+			var button1_nodes = children(button1);
+			a0 = claim_element(button1_nodes, "A", { href: true, class: true, target: true });
 			var a0_nodes = children(a0);
 			t12 = claim_text(a0_nodes, "Add to Google Calendar");
 			a0_nodes.forEach(detach);
+			button1_nodes.forEach(detach);
 			t13 = claim_space(div1_nodes);
-			a1 = claim_element(div1_nodes, "A", { href: true, class: true, target: true });
+			button2 = claim_element(div1_nodes, "BUTTON", {});
+			var button2_nodes = children(button2);
+			a1 = claim_element(button2_nodes, "A", { href: true, class: true, target: true });
 			var a1_nodes = children(a1);
 			t14 = claim_text(a1_nodes, "Send via WhatsApp");
 			a1_nodes.forEach(detach);
+			button2_nodes.forEach(detach);
 			div1_nodes.forEach(detach);
 			section_nodes.forEach(detach);
 			this.h();
@@ -655,7 +665,7 @@ function create_fragment(ctx) {
 			attr(input1, "type", "password");
 			attr(input1, "id", "passwordInput");
 			attr(input1, "placeholder", "Enter password");
-			attr(button, "onclick", "registerUser()");
+			attr(button0, "onclick", "registerUser()");
 			attr(ul0, "id", "registeredList");
 			attr(ul1, "id", "waitingListItems");
 			attr(div0, "id", "waitingList");
@@ -678,8 +688,8 @@ function create_fragment(ctx) {
 			append_hydration(section, t2);
 			append_hydration(section, input1);
 			append_hydration(section, t3);
-			append_hydration(section, button);
-			append_hydration(button, t4);
+			append_hydration(section, button0);
+			append_hydration(button0, t4);
 			append_hydration(section, t5);
 			append_hydration(section, h20);
 			append_hydration(h20, t6);
@@ -693,10 +703,12 @@ function create_fragment(ctx) {
 			append_hydration(div0, ul1);
 			append_hydration(section, t11);
 			append_hydration(section, div1);
-			append_hydration(div1, a0);
+			append_hydration(div1, button1);
+			append_hydration(button1, a0);
 			append_hydration(a0, t12);
 			append_hydration(div1, t13);
-			append_hydration(div1, a1);
+			append_hydration(div1, button2);
+			append_hydration(button2, a1);
 			append_hydration(a1, t14);
 		},
 		p: noop,
