@@ -47,7 +47,7 @@
 }}.mobile-nav.svelte-1grguq5.svelte-1grguq5{display:flex;align-items:center;justify-content:space-between;width:100%;font-weight:500}@media(min-width: 800px){.mobile-nav.svelte-1grguq5.svelte-1grguq5{display:none
 }}#popup.svelte-1grguq5.svelte-1grguq5{font-size:1.25rem;display:grid;gap:1rem;position:absolute;text-align:center;background-color:var(--background-color, white);box-shadow:var(--box-shadow, 0px 4px 30px rgba(0, 0, 0, 0.1));border-radius:var(--border-radius);inset:0.5rem;bottom:initial;padding:2rem;z-index:1}#popup.svelte-1grguq5 button#close.svelte-1grguq5{position:absolute;right:1rem;top:1rem}
 .section-container.svelte-oyonig{text-align:-webkit-center}.poster.svelte-oyonig{max-width:300px;margin:20px 0}
-#waitingList.svelte-cncr6k.svelte-cncr6k{margin-top:20px;color:gray}.buttons.svelte-cncr6k.svelte-cncr6k{margin-top:20px}.buttons.svelte-cncr6k a.svelte-cncr6k{text-decoration:none;color:white;padding:10px 15px;border-radius:5px;margin:0 10px}.google-calendar.svelte-cncr6k.svelte-cncr6k{background-color:#4285F4}.whatsapp.svelte-cncr6k.svelte-cncr6k{background-color:#25D366}</style>
+#waitingList.svelte-1owefo0.svelte-1owefo0{margin-top:20px;color:gray}.buttons.svelte-1owefo0.svelte-1owefo0{margin-top:20px}.buttons.svelte-1owefo0 a.svelte-1owefo0{text-decoration:none;color:white;padding:10px 15px;border-radius:5px;margin:0 50px}.google-calendar.svelte-1owefo0.svelte-1owefo0{background-color:#4285F4}.whatsapp.svelte-1owefo0.svelte-1owefo0{background-color:#25D366}</style>
     </head>
     <body id="page">
        
@@ -56,7 +56,7 @@
     </div></header></div> 
 <div class="section" id="section-13ff298e"><div class="section-container container svelte-oyonig"><h1>Welcome to Bab Movie-night</h1>
   <img src="https://media.posterlounge.com/img/products/690000/682307/682307_poster.jpg" alt="Scent of woman" class="poster svelte-oyonig">
-  <h2>It will be at </h2></div></div> 
+  <h2>It will be at</h2></div></div> 
 <div class="section" id="section-09dd2e6f"><section class="section-container"><h1>Event Registration</h1>
     <input type="text" id="nameInput" placeholder="Enter your name">
     <input type="password" id="passwordInput" placeholder="Enter password">
@@ -65,13 +65,26 @@
     <h2>Registered Users:</h2>
     <ul id="registeredList"></ul>
 
-    <div id="waitingList" class="svelte-cncr6k"><h2>Waiting List:</h2>
+    <div id="waitingList" class="svelte-1owefo0"><h2>Waiting List:</h2>
         <ul id="waitingListItems"></ul></div>
 
-    <div class="buttons svelte-cncr6k"><a href="https://calendar.google.com" class="google-calendar svelte-cncr6k" target="_blank">Add to Google Calendar</a>
-        <a href="https://wa.me/?text=I%20would%20like%20to%20join%20the%20event!" class="whatsapp svelte-cncr6k" target="_blank">Send via WhatsApp</a></div></section></div> 
+    <div class="buttons svelte-1owefo0"><a href="https://calendar.google.com" class="google-calendar svelte-1owefo0" target="_blank">Add to Google Calendar</a>
+        <a href="https://wa.me/?text=I%20would%20like%20to%20join%20the%20event!" class="whatsapp svelte-1owefo0" target="_blank">Send via WhatsApp</a></div></section></div> 
 
       <script type="module">
+      import('/_symbols/10a12a7d-192b-483a-b200-fad5d7f04407.js')
+      .then(({default:App}) => {
+        
+            new App({
+              target: document.querySelector('#section-09dd2e6f'),
+              hydrate: true,
+              props: {}
+            })
+          
+      })
+      .catch(e => console.error(e))
+    
+
       import('/_symbols/512e3c07-8ff7-4498-a1de-86cb54211c93.js')
       .then(({default:App}) => {
         
