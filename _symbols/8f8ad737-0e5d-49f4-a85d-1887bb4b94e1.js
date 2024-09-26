@@ -1,4 +1,4 @@
-// New Block - Updated August 28, 2024
+// New Block - Updated September 26, 2024
 function noop$1() { }
 function run(fn) {
     return fn();
@@ -1042,7 +1042,7 @@ class Deferred {
         });
     }
     /**
-     * Our API internals are not promiseified and cannot because our callback APIs have subtle expectations around
+     * Our API internals are not promisified and cannot because our callback APIs have subtle expectations around
      * invoking promises inline, which Promises are forbidden to do. This method accepts an optional node-style callback
      * and returns a node-style callback which will resolve or reject the Deferred's promise.
      */
@@ -1113,6 +1113,13 @@ function isMobileCordova() {
         // just to deal with this case would probably be a bad idea.
         !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
         /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA()));
+}
+/**
+ * Detect Cloudflare Worker context.
+ */
+function isCloudflareWorker() {
+    return (typeof navigator !== 'undefined' &&
+        navigator.userAgent === 'Cloudflare-Workers');
 }
 function isBrowserExtension() {
     const runtime = typeof chrome === 'object'
@@ -1203,7 +1210,7 @@ function validateIndexedDBOpenable() {
  *
  * Usage:
  *
- *   // Typescript string literals for type-safe codes
+ *   // TypeScript string literals for type-safe codes
  *   type Err =
  *     'unknown' |
  *     'object-not-found'
@@ -1452,7 +1459,7 @@ class ObserverProxy {
     /**
      * Subscribe function that can be used to add an Observer to the fan-out list.
      *
-     * - We require that no event is sent to a subscriber sychronously to their
+     * - We require that no event is sent to a subscriber synchronously to their
      *   call to subscribe().
      */
     subscribe(nextOrObserver, error, complete) {
@@ -1703,7 +1710,7 @@ class Provider {
         this.onInitCallbacks = new Map();
     }
     /**
-     * @param identifier A provider can provide mulitple instances of a service
+     * @param identifier A provider can provide multiple instances of a service
      * if this.component.multipleInstances is true.
      */
     get(identifier) {
@@ -1753,7 +1760,7 @@ class Provider {
             }
         }
         else {
-            // In case a component is not initialized and should/can not be auto-initialized at the moment, return null if the optional flag is set, or throw
+            // In case a component is not initialized and should/cannot be auto-initialized at the moment, return null if the optional flag is set, or throw
             if (optional) {
                 return null;
             }
@@ -2522,7 +2529,7 @@ function isVersionServiceProvider(provider) {
 }
 
 const name$p = "@firebase/app";
-const version$1$1 = "0.10.9";
+const version$1$1 = "0.10.11";
 
 /**
  * @license
@@ -2591,7 +2598,7 @@ const name$2 = "@firebase/vertexai-preview";
 const name$1$1 = "@firebase/firestore-compat";
 
 const name$q = "firebase";
-const version$2 = "10.13.0";
+const version$2 = "10.13.2";
 
 /**
  * @license
@@ -3122,7 +3129,7 @@ class HeartbeatServiceImpl {
      * already logged, subsequent calls to this function in the same day will be ignored.
      */
     async triggerHeartbeat() {
-        var _a, _b, _c;
+        var _a, _b;
         try {
             const platformLogger = this.container
                 .getProvider('platform-logger')
@@ -3131,11 +3138,10 @@ class HeartbeatServiceImpl {
             // service, not the browser user agent.
             const agent = platformLogger.getPlatformInfoString();
             const date = getUTCDateString();
-            console.log('heartbeats', (_a = this._heartbeatsCache) === null || _a === void 0 ? void 0 : _a.heartbeats);
-            if (((_b = this._heartbeatsCache) === null || _b === void 0 ? void 0 : _b.heartbeats) == null) {
+            if (((_a = this._heartbeatsCache) === null || _a === void 0 ? void 0 : _a.heartbeats) == null) {
                 this._heartbeatsCache = await this._heartbeatsCachePromise;
                 // If we failed to construct a heartbeats cache, then return immediately.
-                if (((_c = this._heartbeatsCache) === null || _c === void 0 ? void 0 : _c.heartbeats) == null) {
+                if (((_b = this._heartbeatsCache) === null || _b === void 0 ? void 0 : _b.heartbeats) == null) {
                     return;
                 }
             }
@@ -3367,7 +3373,7 @@ function registerCoreComponents(variant) {
 registerCoreComponents('');
 
 var name$1 = "firebase";
-var version$1 = "10.13.0";
+var version$1 = "10.13.2";
 
 /**
  * @license
@@ -3901,8 +3907,16 @@ async function _performApiRequest(auth, method, path, request, customErrorMap = 
         if (auth.languageCode) {
             headers["X-Firebase-Locale" /* HttpHeader.X_FIREBASE_LOCALE */] = auth.languageCode;
         }
-        return FetchProvider.fetch()(_getFinalTarget(auth, auth.config.apiHost, path, query), Object.assign({ method,
-            headers, referrerPolicy: 'no-referrer' }, body));
+        const fetchArgs = Object.assign({ method,
+            headers }, body);
+        /* Security-conscious server-side frameworks tend to have built in mitigations for referrer
+           problems". See the Cloudflare GitHub issue #487: Error: The 'referrerPolicy' field on
+           'RequestInitializerDict' is not implemented."
+           https://github.com/cloudflare/next-on-pages/issues/487 */
+        if (!isCloudflareWorker()) {
+            fetchArgs.referrerPolicy = 'no-referrer';
+        }
+        return FetchProvider.fetch()(_getFinalTarget(auth, auth.config.apiHost, path, query), fetchArgs);
     });
 }
 async function _performFetchWithErrorHandling(auth, customErrorMap, fetchFn) {
@@ -9954,7 +9968,7 @@ class BrowserPopupRedirectResolver {
 const browserPopupRedirectResolver = BrowserPopupRedirectResolver;
 
 var name = "@firebase/auth";
-var version = "1.7.7";
+var version = "1.7.9";
 
 /**
  * @license
