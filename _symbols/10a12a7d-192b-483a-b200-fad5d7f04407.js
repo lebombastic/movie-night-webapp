@@ -546,52 +546,87 @@ class SvelteComponent {
 
 function get_each_context(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[8] = list[i];
+	child_ctx[13] = list[i];
+	child_ctx[15] = i;
 	return child_ctx;
 }
 
 function get_each_context_1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[8] = list[i];
+	child_ctx[13] = list[i];
+	child_ctx[15] = i;
 	return child_ctx;
 }
 
-// (76:4) {#each users as user}
+// (124:4) {#each users as user, index}
 function create_each_block_1(ctx) {
 	let li;
-	let t_value = /*user*/ ctx[8].name + "";
-	let t;
+	let t0_value = /*user*/ ctx[13].name + "";
+	let t0;
+	let t1;
+	let button;
+	let t2;
+	let t3;
+	let mounted;
+	let dispose;
+
+	function click_handler() {
+		return /*click_handler*/ ctx[9](/*index*/ ctx[15]);
+	}
 
 	return {
 		c() {
 			li = element("li");
-			t = text(t_value);
+			t0 = text(t0_value);
+			t1 = text(" (Password: Hidden)\n        ");
+			button = element("button");
+			t2 = text("x");
+			t3 = space();
 			this.h();
 		},
 		l(nodes) {
 			li = claim_element(nodes, "LI", { class: true });
 			var li_nodes = children(li);
-			t = claim_text(li_nodes, t_value);
+			t0 = claim_text(li_nodes, t0_value);
+			t1 = claim_text(li_nodes, " (Password: Hidden)\n        ");
+			button = claim_element(li_nodes, "BUTTON", { class: true });
+			var button_nodes = children(button);
+			t2 = claim_text(button_nodes, "x");
+			button_nodes.forEach(detach);
+			t3 = claim_space(li_nodes);
 			li_nodes.forEach(detach);
 			this.h();
 		},
 		h() {
-			attr(li, "class", "svelte-g2n7fc");
+			attr(button, "class", "svelte-rxcu0v");
+			attr(li, "class", "svelte-rxcu0v");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
-			append_hydration(li, t);
+			append_hydration(li, t0);
+			append_hydration(li, t1);
+			append_hydration(li, button);
+			append_hydration(button, t2);
+			append_hydration(li, t3);
+
+			if (!mounted) {
+				dispose = listen(button, "click", click_handler);
+				mounted = true;
+			}
 		},
-		p(ctx, dirty) {
-			if (dirty & /*users*/ 1 && t_value !== (t_value = /*user*/ ctx[8].name + "")) set_data(t, t_value);
+		p(new_ctx, dirty) {
+			ctx = new_ctx;
+			if (dirty & /*users*/ 1 && t0_value !== (t0_value = /*user*/ ctx[13].name + "")) set_data(t0, t0_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
+			mounted = false;
+			dispose();
 		}
 	};
 }
 
-// (82:2) {#if waitingList.length > 0}
+// (133:2) {#if waitingList.length > 0}
 function create_if_block(ctx) {
 	let h2;
 	let t0;
@@ -634,7 +669,7 @@ function create_if_block(ctx) {
 			this.h();
 		},
 		h() {
-			attr(ul, "class", "svelte-g2n7fc");
+			attr(ul, "class", "svelte-rxcu0v");
 		},
 		m(target, anchor) {
 			insert_hydration(target, h2, anchor);
@@ -649,7 +684,7 @@ function create_if_block(ctx) {
 			}
 		},
 		p(ctx, dirty) {
-			if (dirty & /*waitingList*/ 2) {
+			if (dirty & /*deleteUser, waitingList*/ 34) {
 				each_value = /*waitingList*/ ctx[1];
 				let i;
 
@@ -681,37 +716,70 @@ function create_if_block(ctx) {
 	};
 }
 
-// (85:6) {#each waitingList as user}
+// (136:6) {#each waitingList as user, index}
 function create_each_block(ctx) {
 	let li;
-	let t_value = /*user*/ ctx[8].name + "";
-	let t;
+	let t0_value = /*user*/ ctx[13].name + "";
+	let t0;
+	let t1;
+	let button;
+	let t2;
+	let t3;
+	let mounted;
+	let dispose;
+
+	function click_handler_1() {
+		return /*click_handler_1*/ ctx[10](/*index*/ ctx[15]);
+	}
 
 	return {
 		c() {
 			li = element("li");
-			t = text(t_value);
+			t0 = text(t0_value);
+			t1 = text(" (Password: Hidden)\n          ");
+			button = element("button");
+			t2 = text("x");
+			t3 = space();
 			this.h();
 		},
 		l(nodes) {
 			li = claim_element(nodes, "LI", { class: true });
 			var li_nodes = children(li);
-			t = claim_text(li_nodes, t_value);
+			t0 = claim_text(li_nodes, t0_value);
+			t1 = claim_text(li_nodes, " (Password: Hidden)\n          ");
+			button = claim_element(li_nodes, "BUTTON", { class: true });
+			var button_nodes = children(button);
+			t2 = claim_text(button_nodes, "x");
+			button_nodes.forEach(detach);
+			t3 = claim_space(li_nodes);
 			li_nodes.forEach(detach);
 			this.h();
 		},
 		h() {
-			attr(li, "class", "svelte-g2n7fc");
+			attr(button, "class", "svelte-rxcu0v");
+			attr(li, "class", "svelte-rxcu0v");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
-			append_hydration(li, t);
+			append_hydration(li, t0);
+			append_hydration(li, t1);
+			append_hydration(li, button);
+			append_hydration(button, t2);
+			append_hydration(li, t3);
+
+			if (!mounted) {
+				dispose = listen(button, "click", click_handler_1);
+				mounted = true;
+			}
 		},
-		p(ctx, dirty) {
-			if (dirty & /*waitingList*/ 2 && t_value !== (t_value = /*user*/ ctx[8].name + "")) set_data(t, t_value);
+		p(new_ctx, dirty) {
+			ctx = new_ctx;
+			if (dirty & /*waitingList*/ 2 && t0_value !== (t0_value = /*user*/ ctx[13].name + "")) set_data(t0, t0_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
+			mounted = false;
+			dispose();
 		}
 	};
 }
@@ -826,15 +894,15 @@ function create_fragment(ctx) {
 			attr(input0, "type", "text");
 			attr(input0, "placeholder", "Enter your name");
 			input0.required = true;
-			attr(input0, "class", "svelte-g2n7fc");
+			attr(input0, "class", "svelte-rxcu0v");
 			attr(input1, "type", "password");
-			attr(input1, "placeholder", "Enter the predefined password");
+			attr(input1, "placeholder", "Create a password");
 			input1.required = true;
-			attr(input1, "class", "svelte-g2n7fc");
+			attr(input1, "class", "svelte-rxcu0v");
 			attr(button, "type", "submit");
-			attr(button, "class", "svelte-g2n7fc");
-			attr(form, "class", "svelte-g2n7fc");
-			attr(ul, "class", "svelte-g2n7fc");
+			attr(button, "class", "svelte-rxcu0v");
+			attr(form, "class", "svelte-rxcu0v");
+			attr(ul, "class", "svelte-rxcu0v");
 			attr(section, "class", "section-container");
 		},
 		m(target, anchor) {
@@ -868,8 +936,8 @@ function create_fragment(ctx) {
 
 			if (!mounted) {
 				dispose = [
-					listen(input0, "input", /*input0_input_handler*/ ctx[6]),
-					listen(input1, "input", /*input1_input_handler*/ ctx[7]),
+					listen(input0, "input", /*input0_input_handler*/ ctx[7]),
+					listen(input1, "input", /*input1_input_handler*/ ctx[8]),
 					listen(form, "submit", prevent_default(/*registerUser*/ ctx[4]))
 				];
 
@@ -885,7 +953,7 @@ function create_fragment(ctx) {
 				set_input_value(input1, /*userPassword*/ ctx[3]);
 			}
 
-			if (dirty & /*users*/ 1) {
+			if (dirty & /*deleteUser, users*/ 33) {
 				each_value_1 = /*users*/ ctx[0];
 				let i;
 
@@ -934,34 +1002,75 @@ function create_fragment(ctx) {
 }
 
 const maxUsers = 10;
-const predefinedPassword = "Predefined123";
 
 function instance($$self, $$props, $$invalidate) {
 	let { props } = $$props;
 	let users = [];
 	let waitingList = [];
 	let userName = "";
-	let userPassword = ""; // Input for user-provided password
+	let userPassword = "";
 
-	function registerUser() {
-		if (userName.trim() === "" || userPassword.trim() === "") return; // Ignore empty names or passwords
+	// Load stored data from localStorage
+	function loadStoredData() {
+		const storedUsers = localStorage.getItem('users');
+		const storedWaitingList = localStorage.getItem('waitingList');
 
-		// Check if entered password matches the predefined one
-		if (userPassword === predefinedPassword) {
-			if (users.length < maxUsers) {
-				$$invalidate(0, users = [...users, { name: userName, password: userPassword }]);
-			} else {
-				$$invalidate(1, waitingList = [...waitingList, { name: userName, password: userPassword }]);
-			}
-		} else {
-			alert("Incorrect password! Please enter the predefined password.");
+		if (storedUsers) {
+			$$invalidate(0, users = JSON.parse(storedUsers));
 		}
 
-		// Clear input fields after submission
+		if (storedWaitingList) {
+			$$invalidate(1, waitingList = JSON.parse(storedWaitingList));
+		}
+	}
+
+	// Save data to localStorage
+	function saveDataToLocalStorage() {
+		localStorage.setItem('users', JSON.stringify(users));
+		localStorage.setItem('waitingList', JSON.stringify(waitingList));
+	}
+
+	// Register user with unique password
+	function registerUser() {
+		if (userName.trim() === "" || userPassword.trim() === "") return;
+
+		if (users.length < maxUsers) {
+			$$invalidate(0, users = [...users, { name: userName, password: userPassword }]);
+		} else {
+			$$invalidate(1, waitingList = [...waitingList, { name: userName, password: userPassword }]);
+		}
+
+		saveDataToLocalStorage();
+
+		// Clear input fields
 		$$invalidate(2, userName = "");
 
 		$$invalidate(3, userPassword = "");
 	}
+
+	// Delete user after confirming their password
+	function deleteUser(index, listType) {
+		const enteredPassword = prompt("Enter your password to delete your registration:");
+		let list = listType === 'users' ? users : waitingList;
+
+		// Check if the entered password matches the user's password
+		if (enteredPassword === list[index].password) {
+			list.splice(index, 1); // Remove user from list
+
+			if (listType === 'users') {
+				$$invalidate(0, users = [...list]);
+			} else {
+				$$invalidate(1, waitingList = [...list]);
+			}
+
+			saveDataToLocalStorage(); // Update localStorage
+		} else {
+			alert("Incorrect password. Unable to delete entry.");
+		}
+	}
+
+	// Load data on app startup
+	loadStoredData();
 
 	function input0_input_handler() {
 		userName = this.value;
@@ -973,8 +1082,11 @@ function instance($$self, $$props, $$invalidate) {
 		$$invalidate(3, userPassword);
 	}
 
+	const click_handler = index => deleteUser(index, 'users');
+	const click_handler_1 = index => deleteUser(index, 'waitingList');
+
 	$$self.$$set = $$props => {
-		if ('props' in $$props) $$invalidate(5, props = $$props.props);
+		if ('props' in $$props) $$invalidate(6, props = $$props.props);
 	};
 
 	return [
@@ -983,16 +1095,19 @@ function instance($$self, $$props, $$invalidate) {
 		userName,
 		userPassword,
 		registerUser,
+		deleteUser,
 		props,
 		input0_input_handler,
-		input1_input_handler
+		input1_input_handler,
+		click_handler,
+		click_handler_1
 	];
 }
 
 class Component extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance, create_fragment, safe_not_equal, { props: 5 });
+		init(this, options, instance, create_fragment, safe_not_equal, { props: 6 });
 	}
 }
 
