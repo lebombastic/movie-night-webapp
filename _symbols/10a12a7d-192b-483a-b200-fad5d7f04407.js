@@ -566,7 +566,7 @@ function get_each_context_1(ctx, list, i) {
 	return child_ctx;
 }
 
-// (75:4) {#each registeredUsers as user}
+// (89:4) {#each registeredUsers as user}
 function create_each_block_1(ctx) {
 	let li;
 	let t_value = /*user*/ ctx[8] + "";
@@ -596,7 +596,7 @@ function create_each_block_1(ctx) {
 	};
 }
 
-// (83:6) {#each waitingList as user}
+// (97:6) {#each waitingList as user}
 function create_each_block(ctx) {
 	let li;
 	let t_value = /*user*/ ctx[8] + "";
@@ -930,7 +930,7 @@ function create_fragment(ctx) {
 }
 
 const maxUsers = 10;
-const predefinedPassword = "fatax"; // Set your password here
+const predefinedPassword = 'fatax'; // Set your password here
 
 function instance($$self, $$props, $$invalidate) {
 	let { props } = $$props;
@@ -939,14 +939,25 @@ function instance($$self, $$props, $$invalidate) {
 	let registeredUsers = [];
 	let waitingList = [];
 
+	// Load from session storage on mount
 	onMount(() => {
-		$$invalidate(2, registeredUsers = JSON.parse(sessionStorage.getItem('registeredUsers')) || []);
-		$$invalidate(3, waitingList = JSON.parse(sessionStorage.getItem('waitingList')) || []);
+		const storedRegisteredUsers = sessionStorage.getItem('registeredUsers');
+		const storedWaitingList = sessionStorage.getItem('waitingList');
+
+		$$invalidate(2, registeredUsers = storedRegisteredUsers
+		? JSON.parse(storedRegisteredUsers)
+		: []);
+
+		$$invalidate(3, waitingList = storedWaitingList ? JSON.parse(storedWaitingList) : []);
 	});
 
+	// Function to register the user
 	function registerUser() {
+		console.log("Name entered: ", name); // Log name to check value
+		console.log("Password entered: ", password); // Log password to check value
+
 		if (!name || !password) {
-			alert('Please enter both name and password.');
+			alert('Please enter both name and password');
 			return;
 		}
 
@@ -956,20 +967,28 @@ function instance($$self, $$props, $$invalidate) {
 		}
 
 		if (registeredUsers.includes(name)) {
-			alert('This name is already registered. Please choose a different name.');
+			alert('This name is already registered.');
 			return;
 		}
 
+		// Add to registered users or waiting list
 		if (registeredUsers.length < maxUsers) {
-			registeredUsers.push(name);
+			$$invalidate(2, registeredUsers = [...registeredUsers, name]); // Add user to the list
+			alert(`${name} is registered!`);
 		} else {
-			waitingList.push(name);
+			$$invalidate(3, waitingList = [...waitingList, name]); // Add to waiting list
+			alert(`${name} is added to the waiting list.`);
 		}
 
+		// Save data in session storage
 		sessionStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+
 		sessionStorage.setItem('waitingList', JSON.stringify(waitingList));
-		$$invalidate(0, name = ''); // Clear input
-		$$invalidate(1, password = ''); // Clear password input
+
+		// Reset input fields
+		$$invalidate(0, name = '');
+
+		$$invalidate(1, password = '');
 	}
 
 	function input0_input_handler() {
