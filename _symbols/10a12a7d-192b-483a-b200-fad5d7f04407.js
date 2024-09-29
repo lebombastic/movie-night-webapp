@@ -546,38 +546,52 @@ class SvelteComponent {
 
 function get_each_context(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[18] = list[i];
-	child_ctx[20] = i;
+	child_ctx[27] = list[i];
+	child_ctx[29] = i;
 	return child_ctx;
 }
 
 function get_each_context_1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[18] = list[i];
-	child_ctx[20] = i;
+	child_ctx[27] = list[i];
+	child_ctx[29] = i;
 	return child_ctx;
 }
 
 function get_each_context_2(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[18] = list[i];
-	child_ctx[20] = i;
+	child_ctx[27] = list[i];
+	child_ctx[29] = i;
 	return child_ctx;
 }
 
-// (197:8) {#each users as user, index}
+// (267:8) {#each users as user, index}
 function create_each_block_2(ctx) {
 	let li;
-	let t0_value = /*user*/ ctx[18].name + "";
+	let t0_value = /*user*/ ctx[27].name + "";
 	let t0;
 	let t1;
-	let button;
-	let i;
+	let button0;
+	let i0;
+	let t2;
+	let button1;
+	let i1;
+	let t3;
+	let button2;
+	let i2;
 	let mounted;
 	let dispose;
 
-	function click_handler() {
-		return /*click_handler*/ ctx[12](/*index*/ ctx[20]);
+	function click_handler_1() {
+		return /*click_handler_1*/ ctx[15](/*index*/ ctx[29]);
+	}
+
+	function click_handler_2() {
+		return /*click_handler_2*/ ctx[16](/*index*/ ctx[29]);
+	}
+
+	function click_handler_3() {
+		return /*click_handler_3*/ ctx[17](/*index*/ ctx[29]);
 	}
 
 	return {
@@ -585,8 +599,14 @@ function create_each_block_2(ctx) {
 			li = element("li");
 			t0 = text(t0_value);
 			t1 = space();
-			button = element("button");
-			i = element("i");
+			button0 = element("button");
+			i0 = element("i");
+			t2 = space();
+			button1 = element("button");
+			i1 = element("i");
+			t3 = space();
+			button2 = element("button");
+			i2 = element("i");
 			this.h();
 		},
 		l(nodes) {
@@ -594,44 +614,71 @@ function create_each_block_2(ctx) {
 			var li_nodes = children(li);
 			t0 = claim_text(li_nodes, t0_value);
 			t1 = claim_space(li_nodes);
-			button = claim_element(li_nodes, "BUTTON", { class: true });
-			var button_nodes = children(button);
-			i = claim_element(button_nodes, "I", { class: true });
-			children(i).forEach(detach);
-			button_nodes.forEach(detach);
+			button0 = claim_element(li_nodes, "BUTTON", { class: true });
+			var button0_nodes = children(button0);
+			i0 = claim_element(button0_nodes, "I", { class: true });
+			children(i0).forEach(detach);
+			button0_nodes.forEach(detach);
+			t2 = claim_space(li_nodes);
+			button1 = claim_element(li_nodes, "BUTTON", { class: true });
+			var button1_nodes = children(button1);
+			i1 = claim_element(button1_nodes, "I", { class: true });
+			children(i1).forEach(detach);
+			button1_nodes.forEach(detach);
+			t3 = claim_space(li_nodes);
+			button2 = claim_element(li_nodes, "BUTTON", { class: true });
+			var button2_nodes = children(button2);
+			i2 = claim_element(button2_nodes, "I", { class: true });
+			children(i2).forEach(detach);
+			button2_nodes.forEach(detach);
 			li_nodes.forEach(detach);
 			this.h();
 		},
 		h() {
-			attr(i, "class", "fas fa-times svelte-1rbuwcx");
-			attr(button, "class", "svelte-1rbuwcx");
-			attr(li, "class", "svelte-1rbuwcx");
+			attr(i0, "class", "fas fa-times svelte-ka46jm");
+			attr(button0, "class", "svelte-ka46jm");
+			attr(i1, "class", "fas fa-edit svelte-ka46jm");
+			attr(button1, "class", "svelte-ka46jm");
+			attr(i2, "class", "fas fa-trash svelte-ka46jm");
+			attr(button2, "class", "svelte-ka46jm");
+			attr(li, "class", "svelte-ka46jm");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
 			append_hydration(li, t0);
 			append_hydration(li, t1);
-			append_hydration(li, button);
-			append_hydration(button, i);
+			append_hydration(li, button0);
+			append_hydration(button0, i0);
+			append_hydration(li, t2);
+			append_hydration(li, button1);
+			append_hydration(button1, i1);
+			append_hydration(li, t3);
+			append_hydration(li, button2);
+			append_hydration(button2, i2);
 
 			if (!mounted) {
-				dispose = listen(button, "click", click_handler);
+				dispose = [
+					listen(button0, "click", click_handler_1),
+					listen(button1, "click", click_handler_2),
+					listen(button2, "click", click_handler_3)
+				];
+
 				mounted = true;
 			}
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if (dirty & /*users*/ 1 && t0_value !== (t0_value = /*user*/ ctx[18].name + "")) set_data(t0, t0_value);
+			if (dirty[0] & /*users*/ 1 && t0_value !== (t0_value = /*user*/ ctx[27].name + "")) set_data(t0, t0_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
 			mounted = false;
-			dispose();
+			run_all(dispose);
 		}
 	};
 }
 
-// (203:8) {#if users.length === 0}
+// (276:8) {#if users.length === 0}
 function create_if_block_2(ctx) {
 	let li;
 	let t;
@@ -650,7 +697,7 @@ function create_if_block_2(ctx) {
 			this.h();
 		},
 		h() {
-			attr(li, "class", "empty svelte-1rbuwcx");
+			attr(li, "class", "empty svelte-ka46jm");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
@@ -662,19 +709,33 @@ function create_if_block_2(ctx) {
 	};
 }
 
-// (213:8) {#each waitingList as user, index}
+// (286:8) {#each waitingList as user, index}
 function create_each_block_1(ctx) {
 	let li;
-	let t0_value = /*user*/ ctx[18].name + "";
+	let t0_value = /*user*/ ctx[27].name + "";
 	let t0;
 	let t1;
-	let button;
-	let i;
+	let button0;
+	let i0;
+	let t2;
+	let button1;
+	let i1;
+	let t3;
+	let button2;
+	let i2;
 	let mounted;
 	let dispose;
 
-	function click_handler_1() {
-		return /*click_handler_1*/ ctx[13](/*index*/ ctx[20]);
+	function click_handler_4() {
+		return /*click_handler_4*/ ctx[18](/*index*/ ctx[29]);
+	}
+
+	function click_handler_5() {
+		return /*click_handler_5*/ ctx[19](/*index*/ ctx[29]);
+	}
+
+	function click_handler_6() {
+		return /*click_handler_6*/ ctx[20](/*index*/ ctx[29]);
 	}
 
 	return {
@@ -682,8 +743,14 @@ function create_each_block_1(ctx) {
 			li = element("li");
 			t0 = text(t0_value);
 			t1 = space();
-			button = element("button");
-			i = element("i");
+			button0 = element("button");
+			i0 = element("i");
+			t2 = space();
+			button1 = element("button");
+			i1 = element("i");
+			t3 = space();
+			button2 = element("button");
+			i2 = element("i");
 			this.h();
 		},
 		l(nodes) {
@@ -691,44 +758,71 @@ function create_each_block_1(ctx) {
 			var li_nodes = children(li);
 			t0 = claim_text(li_nodes, t0_value);
 			t1 = claim_space(li_nodes);
-			button = claim_element(li_nodes, "BUTTON", { class: true });
-			var button_nodes = children(button);
-			i = claim_element(button_nodes, "I", { class: true });
-			children(i).forEach(detach);
-			button_nodes.forEach(detach);
+			button0 = claim_element(li_nodes, "BUTTON", { class: true });
+			var button0_nodes = children(button0);
+			i0 = claim_element(button0_nodes, "I", { class: true });
+			children(i0).forEach(detach);
+			button0_nodes.forEach(detach);
+			t2 = claim_space(li_nodes);
+			button1 = claim_element(li_nodes, "BUTTON", { class: true });
+			var button1_nodes = children(button1);
+			i1 = claim_element(button1_nodes, "I", { class: true });
+			children(i1).forEach(detach);
+			button1_nodes.forEach(detach);
+			t3 = claim_space(li_nodes);
+			button2 = claim_element(li_nodes, "BUTTON", { class: true });
+			var button2_nodes = children(button2);
+			i2 = claim_element(button2_nodes, "I", { class: true });
+			children(i2).forEach(detach);
+			button2_nodes.forEach(detach);
 			li_nodes.forEach(detach);
 			this.h();
 		},
 		h() {
-			attr(i, "class", "fas fa-times svelte-1rbuwcx");
-			attr(button, "class", "svelte-1rbuwcx");
-			attr(li, "class", "svelte-1rbuwcx");
+			attr(i0, "class", "fas fa-times svelte-ka46jm");
+			attr(button0, "class", "svelte-ka46jm");
+			attr(i1, "class", "fas fa-edit svelte-ka46jm");
+			attr(button1, "class", "svelte-ka46jm");
+			attr(i2, "class", "fas fa-trash svelte-ka46jm");
+			attr(button2, "class", "svelte-ka46jm");
+			attr(li, "class", "svelte-ka46jm");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
 			append_hydration(li, t0);
 			append_hydration(li, t1);
-			append_hydration(li, button);
-			append_hydration(button, i);
+			append_hydration(li, button0);
+			append_hydration(button0, i0);
+			append_hydration(li, t2);
+			append_hydration(li, button1);
+			append_hydration(button1, i1);
+			append_hydration(li, t3);
+			append_hydration(li, button2);
+			append_hydration(button2, i2);
 
 			if (!mounted) {
-				dispose = listen(button, "click", click_handler_1);
+				dispose = [
+					listen(button0, "click", click_handler_4),
+					listen(button1, "click", click_handler_5),
+					listen(button2, "click", click_handler_6)
+				];
+
 				mounted = true;
 			}
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if (dirty & /*waitingList*/ 2 && t0_value !== (t0_value = /*user*/ ctx[18].name + "")) set_data(t0, t0_value);
+			if (dirty[0] & /*waitingList*/ 2 && t0_value !== (t0_value = /*user*/ ctx[27].name + "")) set_data(t0, t0_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
 			mounted = false;
-			dispose();
+			run_all(dispose);
 		}
 	};
 }
 
-// (219:8) {#if waitingList.length === 0}
+// (295:8) {#if waitingList.length === 0}
 function create_if_block_1(ctx) {
 	let li;
 	let t;
@@ -747,7 +841,7 @@ function create_if_block_1(ctx) {
 			this.h();
 		},
 		h() {
-			attr(li, "class", "empty svelte-1rbuwcx");
+			attr(li, "class", "empty svelte-ka46jm");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
@@ -759,19 +853,33 @@ function create_if_block_1(ctx) {
 	};
 }
 
-// (229:8) {#each notSureList as user, index}
+// (305:8) {#each notSureList as user, index}
 function create_each_block(ctx) {
 	let li;
-	let t0_value = /*user*/ ctx[18].name + "";
+	let t0_value = /*user*/ ctx[27].name + "";
 	let t0;
 	let t1;
-	let button;
-	let i;
+	let button0;
+	let i0;
+	let t2;
+	let button1;
+	let i1;
+	let t3;
+	let button2;
+	let i2;
 	let mounted;
 	let dispose;
 
-	function click_handler_2() {
-		return /*click_handler_2*/ ctx[14](/*index*/ ctx[20]);
+	function click_handler_7() {
+		return /*click_handler_7*/ ctx[21](/*index*/ ctx[29]);
+	}
+
+	function click_handler_8() {
+		return /*click_handler_8*/ ctx[22](/*index*/ ctx[29]);
+	}
+
+	function click_handler_9() {
+		return /*click_handler_9*/ ctx[23](/*index*/ ctx[29]);
 	}
 
 	return {
@@ -779,8 +887,14 @@ function create_each_block(ctx) {
 			li = element("li");
 			t0 = text(t0_value);
 			t1 = space();
-			button = element("button");
-			i = element("i");
+			button0 = element("button");
+			i0 = element("i");
+			t2 = space();
+			button1 = element("button");
+			i1 = element("i");
+			t3 = space();
+			button2 = element("button");
+			i2 = element("i");
 			this.h();
 		},
 		l(nodes) {
@@ -788,44 +902,71 @@ function create_each_block(ctx) {
 			var li_nodes = children(li);
 			t0 = claim_text(li_nodes, t0_value);
 			t1 = claim_space(li_nodes);
-			button = claim_element(li_nodes, "BUTTON", { class: true });
-			var button_nodes = children(button);
-			i = claim_element(button_nodes, "I", { class: true });
-			children(i).forEach(detach);
-			button_nodes.forEach(detach);
+			button0 = claim_element(li_nodes, "BUTTON", { class: true });
+			var button0_nodes = children(button0);
+			i0 = claim_element(button0_nodes, "I", { class: true });
+			children(i0).forEach(detach);
+			button0_nodes.forEach(detach);
+			t2 = claim_space(li_nodes);
+			button1 = claim_element(li_nodes, "BUTTON", { class: true });
+			var button1_nodes = children(button1);
+			i1 = claim_element(button1_nodes, "I", { class: true });
+			children(i1).forEach(detach);
+			button1_nodes.forEach(detach);
+			t3 = claim_space(li_nodes);
+			button2 = claim_element(li_nodes, "BUTTON", { class: true });
+			var button2_nodes = children(button2);
+			i2 = claim_element(button2_nodes, "I", { class: true });
+			children(i2).forEach(detach);
+			button2_nodes.forEach(detach);
 			li_nodes.forEach(detach);
 			this.h();
 		},
 		h() {
-			attr(i, "class", "fas fa-times svelte-1rbuwcx");
-			attr(button, "class", "svelte-1rbuwcx");
-			attr(li, "class", "svelte-1rbuwcx");
+			attr(i0, "class", "fas fa-times svelte-ka46jm");
+			attr(button0, "class", "svelte-ka46jm");
+			attr(i1, "class", "fas fa-edit svelte-ka46jm");
+			attr(button1, "class", "svelte-ka46jm");
+			attr(i2, "class", "fas fa-trash svelte-ka46jm");
+			attr(button2, "class", "svelte-ka46jm");
+			attr(li, "class", "svelte-ka46jm");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
 			append_hydration(li, t0);
 			append_hydration(li, t1);
-			append_hydration(li, button);
-			append_hydration(button, i);
+			append_hydration(li, button0);
+			append_hydration(button0, i0);
+			append_hydration(li, t2);
+			append_hydration(li, button1);
+			append_hydration(button1, i1);
+			append_hydration(li, t3);
+			append_hydration(li, button2);
+			append_hydration(button2, i2);
 
 			if (!mounted) {
-				dispose = listen(button, "click", click_handler_2);
+				dispose = [
+					listen(button0, "click", click_handler_7),
+					listen(button1, "click", click_handler_8),
+					listen(button2, "click", click_handler_9)
+				];
+
 				mounted = true;
 			}
 		},
 		p(new_ctx, dirty) {
 			ctx = new_ctx;
-			if (dirty & /*notSureList*/ 4 && t0_value !== (t0_value = /*user*/ ctx[18].name + "")) set_data(t0, t0_value);
+			if (dirty[0] & /*notSureList*/ 4 && t0_value !== (t0_value = /*user*/ ctx[27].name + "")) set_data(t0, t0_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
 			mounted = false;
-			dispose();
+			run_all(dispose);
 		}
 	};
 }
 
-// (235:8) {#if notSureList.length === 0}
+// (314:8) {#if notSureList.length === 0}
 function create_if_block(ctx) {
 	let li;
 	let t;
@@ -844,7 +985,7 @@ function create_if_block(ctx) {
 			this.h();
 		},
 		h() {
-			attr(li, "class", "empty svelte-1rbuwcx");
+			attr(li, "class", "empty svelte-ka46jm");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
@@ -870,33 +1011,36 @@ function create_fragment(ctx) {
 	let input2;
 	let t4;
 	let t5;
-	let button;
+	let button0;
 	let t6;
 	let t7;
+	let button1;
+	let t8;
+	let t9;
 	let div;
 	let section0;
 	let h20;
 	let i0;
-	let t8;
-	let t9;
-	let ul0;
 	let t10;
 	let t11;
+	let ul0;
+	let t12;
+	let t13;
 	let section1;
 	let h21;
 	let i1;
-	let t12;
-	let t13;
-	let ul1;
 	let t14;
 	let t15;
+	let ul1;
+	let t16;
+	let t17;
 	let section2;
 	let h22;
 	let i2;
-	let t16;
-	let t17;
-	let ul2;
 	let t18;
+	let t19;
+	let ul2;
+	let t20;
 	let mounted;
 	let dispose;
 	let each_value_2 = /*users*/ ctx[0];
@@ -939,50 +1083,53 @@ function create_fragment(ctx) {
 			input2 = element("input");
 			t4 = text("\n      Not Sure?");
 			t5 = space();
-			button = element("button");
+			button0 = element("button");
 			t6 = text("Register");
 			t7 = space();
+			button1 = element("button");
+			t8 = text("Admin");
+			t9 = space();
 			div = element("div");
 			section0 = element("section");
 			h20 = element("h2");
 			i0 = element("i");
-			t8 = text(" Registered Users");
-			t9 = space();
+			t10 = text(" Registered Users");
+			t11 = space();
 			ul0 = element("ul");
 
 			for (let i = 0; i < each_blocks_2.length; i += 1) {
 				each_blocks_2[i].c();
 			}
 
-			t10 = space();
+			t12 = space();
 			if (if_block0) if_block0.c();
-			t11 = space();
+			t13 = space();
 			section1 = element("section");
 			h21 = element("h2");
 			i1 = element("i");
-			t12 = text(" Waiting List");
-			t13 = space();
+			t14 = text(" Waiting List");
+			t15 = space();
 			ul1 = element("ul");
 
 			for (let i = 0; i < each_blocks_1.length; i += 1) {
 				each_blocks_1[i].c();
 			}
 
-			t14 = space();
+			t16 = space();
 			if (if_block1) if_block1.c();
-			t15 = space();
+			t17 = space();
 			section2 = element("section");
 			h22 = element("h2");
 			i2 = element("i");
-			t16 = text(" Not Sure - List");
-			t17 = space();
+			t18 = text(" Not Sure - List");
+			t19 = space();
 			ul2 = element("ul");
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].c();
 			}
 
-			t18 = space();
+			t20 = space();
 			if (if_block2) if_block2.c();
 			this.h();
 		},
@@ -1018,12 +1165,17 @@ function create_fragment(ctx) {
 			t4 = claim_text(label_nodes, "\n      Not Sure?");
 			label_nodes.forEach(detach);
 			t5 = claim_space(form_nodes);
-			button = claim_element(form_nodes, "BUTTON", { type: true, class: true });
-			var button_nodes = children(button);
-			t6 = claim_text(button_nodes, "Register");
-			button_nodes.forEach(detach);
+			button0 = claim_element(form_nodes, "BUTTON", { type: true, class: true });
+			var button0_nodes = children(button0);
+			t6 = claim_text(button0_nodes, "Register");
+			button0_nodes.forEach(detach);
 			form_nodes.forEach(detach);
 			t7 = claim_space(section3_nodes);
+			button1 = claim_element(section3_nodes, "BUTTON", { class: true });
+			var button1_nodes = children(button1);
+			t8 = claim_text(button1_nodes, "Admin");
+			button1_nodes.forEach(detach);
+			t9 = claim_space(section3_nodes);
 			div = claim_element(section3_nodes, "DIV", { class: true });
 			var div_nodes = children(div);
 			section0 = claim_element(div_nodes, "SECTION", { class: true });
@@ -1032,9 +1184,9 @@ function create_fragment(ctx) {
 			var h20_nodes = children(h20);
 			i0 = claim_element(h20_nodes, "I", { class: true });
 			children(i0).forEach(detach);
-			t8 = claim_text(h20_nodes, " Registered Users");
+			t10 = claim_text(h20_nodes, " Registered Users");
 			h20_nodes.forEach(detach);
-			t9 = claim_space(section0_nodes);
+			t11 = claim_space(section0_nodes);
 			ul0 = claim_element(section0_nodes, "UL", { class: true });
 			var ul0_nodes = children(ul0);
 
@@ -1042,20 +1194,20 @@ function create_fragment(ctx) {
 				each_blocks_2[i].l(ul0_nodes);
 			}
 
-			t10 = claim_space(ul0_nodes);
+			t12 = claim_space(ul0_nodes);
 			if (if_block0) if_block0.l(ul0_nodes);
 			ul0_nodes.forEach(detach);
 			section0_nodes.forEach(detach);
-			t11 = claim_space(div_nodes);
+			t13 = claim_space(div_nodes);
 			section1 = claim_element(div_nodes, "SECTION", { class: true });
 			var section1_nodes = children(section1);
 			h21 = claim_element(section1_nodes, "H2", { class: true });
 			var h21_nodes = children(h21);
 			i1 = claim_element(h21_nodes, "I", { class: true });
 			children(i1).forEach(detach);
-			t12 = claim_text(h21_nodes, " Waiting List");
+			t14 = claim_text(h21_nodes, " Waiting List");
 			h21_nodes.forEach(detach);
-			t13 = claim_space(section1_nodes);
+			t15 = claim_space(section1_nodes);
 			ul1 = claim_element(section1_nodes, "UL", { class: true });
 			var ul1_nodes = children(ul1);
 
@@ -1063,20 +1215,20 @@ function create_fragment(ctx) {
 				each_blocks_1[i].l(ul1_nodes);
 			}
 
-			t14 = claim_space(ul1_nodes);
+			t16 = claim_space(ul1_nodes);
 			if (if_block1) if_block1.l(ul1_nodes);
 			ul1_nodes.forEach(detach);
 			section1_nodes.forEach(detach);
-			t15 = claim_space(div_nodes);
+			t17 = claim_space(div_nodes);
 			section2 = claim_element(div_nodes, "SECTION", { class: true });
 			var section2_nodes = children(section2);
 			h22 = claim_element(section2_nodes, "H2", { class: true });
 			var h22_nodes = children(h22);
 			i2 = claim_element(h22_nodes, "I", { class: true });
 			children(i2).forEach(detach);
-			t16 = claim_text(h22_nodes, " Not Sure - List");
+			t18 = claim_text(h22_nodes, " Not Sure - List");
 			h22_nodes.forEach(detach);
-			t17 = claim_space(section2_nodes);
+			t19 = claim_space(section2_nodes);
 			ul2 = claim_element(section2_nodes, "UL", { class: true });
 			var ul2_nodes = children(ul2);
 
@@ -1084,7 +1236,7 @@ function create_fragment(ctx) {
 				each_blocks[i].l(ul2_nodes);
 			}
 
-			t18 = claim_space(ul2_nodes);
+			t20 = claim_space(ul2_nodes);
 			if (if_block2) if_block2.l(ul2_nodes);
 			ul2_nodes.forEach(detach);
 			section2_nodes.forEach(detach);
@@ -1096,30 +1248,31 @@ function create_fragment(ctx) {
 			attr(input0, "type", "text");
 			attr(input0, "placeholder", "Enter your name");
 			input0.required = true;
-			attr(input0, "class", "svelte-1rbuwcx");
+			attr(input0, "class", "svelte-ka46jm");
 			attr(input1, "type", "password");
 			attr(input1, "placeholder", "Create a password");
 			input1.required = true;
-			attr(input1, "class", "svelte-1rbuwcx");
+			attr(input1, "class", "svelte-ka46jm");
 			attr(input2, "type", "checkbox");
-			attr(label, "class", "svelte-1rbuwcx");
-			attr(button, "type", "submit");
-			attr(button, "class", "svelte-1rbuwcx");
-			attr(form, "class", "svelte-1rbuwcx");
-			attr(i0, "class", "fas fa-users svelte-1rbuwcx");
-			attr(h20, "class", "svelte-1rbuwcx");
-			attr(ul0, "class", "svelte-1rbuwcx");
-			attr(section0, "class", "list-section svelte-1rbuwcx");
-			attr(i1, "class", "fas fa-hourglass-half svelte-1rbuwcx");
-			attr(h21, "class", "svelte-1rbuwcx");
-			attr(ul1, "class", "svelte-1rbuwcx");
-			attr(section1, "class", "list-section svelte-1rbuwcx");
-			attr(i2, "class", "fas fa-question-circle svelte-1rbuwcx");
-			attr(h22, "class", "svelte-1rbuwcx");
-			attr(ul2, "class", "svelte-1rbuwcx");
-			attr(section2, "class", "list-section svelte-1rbuwcx");
-			attr(div, "class", "columns svelte-1rbuwcx");
-			attr(section3, "class", "section-container svelte-1rbuwcx");
+			attr(label, "class", "svelte-ka46jm");
+			attr(button0, "type", "submit");
+			attr(button0, "class", "svelte-ka46jm");
+			attr(form, "class", "svelte-ka46jm");
+			attr(button1, "class", "admin-button svelte-ka46jm");
+			attr(i0, "class", "fas fa-users svelte-ka46jm");
+			attr(h20, "class", "svelte-ka46jm");
+			attr(ul0, "class", "svelte-ka46jm");
+			attr(section0, "class", "list-section svelte-ka46jm");
+			attr(i1, "class", "fas fa-hourglass-half svelte-ka46jm");
+			attr(h21, "class", "svelte-ka46jm");
+			attr(ul1, "class", "svelte-ka46jm");
+			attr(section1, "class", "list-section svelte-ka46jm");
+			attr(i2, "class", "fas fa-question-circle svelte-ka46jm");
+			attr(h22, "class", "svelte-ka46jm");
+			attr(ul2, "class", "svelte-ka46jm");
+			attr(section2, "class", "list-section svelte-ka46jm");
+			attr(div, "class", "columns svelte-ka46jm");
+			attr(section3, "class", "section-container svelte-ka46jm");
 		},
 		m(target, anchor) {
 			insert_hydration(target, section3, anchor);
@@ -1138,15 +1291,18 @@ function create_fragment(ctx) {
 			input2.checked = /*isNotSure*/ ctx[5];
 			append_hydration(label, t4);
 			append_hydration(form, t5);
-			append_hydration(form, button);
-			append_hydration(button, t6);
+			append_hydration(form, button0);
+			append_hydration(button0, t6);
 			append_hydration(section3, t7);
+			append_hydration(section3, button1);
+			append_hydration(button1, t8);
+			append_hydration(section3, t9);
 			append_hydration(section3, div);
 			append_hydration(div, section0);
 			append_hydration(section0, h20);
 			append_hydration(h20, i0);
-			append_hydration(h20, t8);
-			append_hydration(section0, t9);
+			append_hydration(h20, t10);
+			append_hydration(section0, t11);
 			append_hydration(section0, ul0);
 
 			for (let i = 0; i < each_blocks_2.length; i += 1) {
@@ -1155,14 +1311,14 @@ function create_fragment(ctx) {
 				}
 			}
 
-			append_hydration(ul0, t10);
+			append_hydration(ul0, t12);
 			if (if_block0) if_block0.m(ul0, null);
-			append_hydration(div, t11);
+			append_hydration(div, t13);
 			append_hydration(div, section1);
 			append_hydration(section1, h21);
 			append_hydration(h21, i1);
-			append_hydration(h21, t12);
-			append_hydration(section1, t13);
+			append_hydration(h21, t14);
+			append_hydration(section1, t15);
 			append_hydration(section1, ul1);
 
 			for (let i = 0; i < each_blocks_1.length; i += 1) {
@@ -1171,14 +1327,14 @@ function create_fragment(ctx) {
 				}
 			}
 
-			append_hydration(ul1, t14);
+			append_hydration(ul1, t16);
 			if (if_block1) if_block1.m(ul1, null);
-			append_hydration(div, t15);
+			append_hydration(div, t17);
 			append_hydration(div, section2);
 			append_hydration(section2, h22);
 			append_hydration(h22, i2);
-			append_hydration(h22, t16);
-			append_hydration(section2, t17);
+			append_hydration(h22, t18);
+			append_hydration(section2, t19);
 			append_hydration(section2, ul2);
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -1187,34 +1343,35 @@ function create_fragment(ctx) {
 				}
 			}
 
-			append_hydration(ul2, t18);
+			append_hydration(ul2, t20);
 			if (if_block2) if_block2.m(ul2, null);
 
 			if (!mounted) {
 				dispose = [
-					listen(input0, "input", /*input0_input_handler*/ ctx[9]),
-					listen(input1, "input", /*input1_input_handler*/ ctx[10]),
-					listen(input2, "change", /*input2_change_handler*/ ctx[11]),
-					listen(form, "submit", prevent_default(/*registerUser*/ ctx[6]))
+					listen(input0, "input", /*input0_input_handler*/ ctx[11]),
+					listen(input1, "input", /*input1_input_handler*/ ctx[12]),
+					listen(input2, "change", /*input2_change_handler*/ ctx[13]),
+					listen(form, "submit", prevent_default(/*registerUser*/ ctx[6])),
+					listen(button1, "click", /*click_handler*/ ctx[14])
 				];
 
 				mounted = true;
 			}
 		},
-		p(ctx, [dirty]) {
-			if (dirty & /*userName*/ 8 && input0.value !== /*userName*/ ctx[3]) {
+		p(ctx, dirty) {
+			if (dirty[0] & /*userName*/ 8 && input0.value !== /*userName*/ ctx[3]) {
 				set_input_value(input0, /*userName*/ ctx[3]);
 			}
 
-			if (dirty & /*userPassword*/ 16 && input1.value !== /*userPassword*/ ctx[4]) {
+			if (dirty[0] & /*userPassword*/ 16 && input1.value !== /*userPassword*/ ctx[4]) {
 				set_input_value(input1, /*userPassword*/ ctx[4]);
 			}
 
-			if (dirty & /*isNotSure*/ 32) {
+			if (dirty[0] & /*isNotSure*/ 32) {
 				input2.checked = /*isNotSure*/ ctx[5];
 			}
 
-			if (dirty & /*deleteUser, users*/ 129) {
+			if (dirty[0] & /*adminDeleteUser, adminEditUser, deleteUser, users*/ 897) {
 				each_value_2 = /*users*/ ctx[0];
 				let i;
 
@@ -1226,7 +1383,7 @@ function create_fragment(ctx) {
 					} else {
 						each_blocks_2[i] = create_each_block_2(child_ctx);
 						each_blocks_2[i].c();
-						each_blocks_2[i].m(ul0, t10);
+						each_blocks_2[i].m(ul0, t12);
 					}
 				}
 
@@ -1248,7 +1405,7 @@ function create_fragment(ctx) {
 				if_block0 = null;
 			}
 
-			if (dirty & /*deleteUser, waitingList*/ 130) {
+			if (dirty[0] & /*adminDeleteUser, adminEditUser, deleteUser, waitingList*/ 898) {
 				each_value_1 = /*waitingList*/ ctx[1];
 				let i;
 
@@ -1260,7 +1417,7 @@ function create_fragment(ctx) {
 					} else {
 						each_blocks_1[i] = create_each_block_1(child_ctx);
 						each_blocks_1[i].c();
-						each_blocks_1[i].m(ul1, t14);
+						each_blocks_1[i].m(ul1, t16);
 					}
 				}
 
@@ -1282,7 +1439,7 @@ function create_fragment(ctx) {
 				if_block1 = null;
 			}
 
-			if (dirty & /*deleteUser, notSureList*/ 132) {
+			if (dirty[0] & /*adminDeleteUser, adminEditUser, deleteUser, notSureList*/ 900) {
 				each_value = /*notSureList*/ ctx[2];
 				let i;
 
@@ -1294,7 +1451,7 @@ function create_fragment(ctx) {
 					} else {
 						each_blocks[i] = create_each_block(child_ctx);
 						each_blocks[i].c();
-						each_blocks[i].m(ul2, t18);
+						each_blocks[i].m(ul2, t20);
 					}
 				}
 
@@ -1333,6 +1490,7 @@ function create_fragment(ctx) {
 }
 
 const maxUsers = 10;
+const adminPassword = "admin123"; // Predefined admin password
 
 function instance($$self, $$props, $$invalidate) {
 	let { props } = $$props;
@@ -1399,13 +1557,49 @@ function instance($$self, $$props, $$invalidate) {
 		let list;
 		if (listType === 'users') list = users; else if (listType === 'waitingList') list = waitingList; else list = notSureList;
 
-		// Check if the entered password matches the user's password
 		if (enteredPassword === list[index].password) {
 			list.splice(index, 1); // Remove user from list
 			if (listType === 'users') $$invalidate(0, users = [...list]); else if (listType === 'waitingList') $$invalidate(1, waitingList = [...list]); else $$invalidate(2, notSureList = [...list]);
 			saveDataToLocalStorage(); // Update localStorage
 		} else {
 			alert("Incorrect password. Unable to delete entry.");
+		}
+	}
+
+	// Admin functions to edit or delete any user
+	function adminEditUser(index, listType) {
+		const enteredPassword = prompt("Enter admin password to edit this entry:");
+
+		if (enteredPassword === adminPassword) {
+			const newName = prompt("Enter the new username:");
+			const newPassword = prompt("Enter the new password:");
+			let list;
+			if (listType === 'users') list = users; else if (listType === 'waitingList') list = waitingList; else list = notSureList;
+
+			if (newName.trim() && newPassword.trim()) {
+				list[index].name = newName;
+				list[index].password = newPassword;
+				if (listType === 'users') $$invalidate(0, users = [...list]); else if (listType === 'waitingList') $$invalidate(1, waitingList = [...list]); else $$invalidate(2, notSureList = [...list]);
+				saveDataToLocalStorage();
+			} else {
+				alert("Both username and password are required.");
+			}
+		} else {
+			alert("Incorrect admin password.");
+		}
+	}
+
+	function adminDeleteUser(index, listType) {
+		const enteredPassword = prompt("Enter admin password to delete this entry:");
+
+		if (enteredPassword === adminPassword) {
+			let list;
+			if (listType === 'users') list = users; else if (listType === 'waitingList') list = waitingList; else list = notSureList;
+			list.splice(index, 1); // Remove user from list
+			if (listType === 'users') $$invalidate(0, users = [...list]); else if (listType === 'waitingList') $$invalidate(1, waitingList = [...list]); else $$invalidate(2, notSureList = [...list]);
+			saveDataToLocalStorage(); // Update localStorage
+		} else {
+			alert("Incorrect admin password.");
 		}
 	}
 
@@ -1427,12 +1621,19 @@ function instance($$self, $$props, $$invalidate) {
 		$$invalidate(5, isNotSure);
 	}
 
-	const click_handler = index => deleteUser(index, 'users');
-	const click_handler_1 = index => deleteUser(index, 'waitingList');
-	const click_handler_2 = index => deleteUser(index, 'notSureList');
+	const click_handler = () => alert('Admin access granted with correct password.');
+	const click_handler_1 = index => deleteUser(index, 'users');
+	const click_handler_2 = index => adminEditUser(index, 'users');
+	const click_handler_3 = index => adminDeleteUser(index, 'users');
+	const click_handler_4 = index => deleteUser(index, 'waitingList');
+	const click_handler_5 = index => adminEditUser(index, 'waitingList');
+	const click_handler_6 = index => adminDeleteUser(index, 'waitingList');
+	const click_handler_7 = index => deleteUser(index, 'notSureList');
+	const click_handler_8 = index => adminEditUser(index, 'notSureList');
+	const click_handler_9 = index => adminDeleteUser(index, 'notSureList');
 
 	$$self.$$set = $$props => {
-		if ('props' in $$props) $$invalidate(8, props = $$props.props);
+		if ('props' in $$props) $$invalidate(10, props = $$props.props);
 	};
 
 	return [
@@ -1444,20 +1645,29 @@ function instance($$self, $$props, $$invalidate) {
 		isNotSure,
 		registerUser,
 		deleteUser,
+		adminEditUser,
+		adminDeleteUser,
 		props,
 		input0_input_handler,
 		input1_input_handler,
 		input2_change_handler,
 		click_handler,
 		click_handler_1,
-		click_handler_2
+		click_handler_2,
+		click_handler_3,
+		click_handler_4,
+		click_handler_5,
+		click_handler_6,
+		click_handler_7,
+		click_handler_8,
+		click_handler_9
 	];
 }
 
 class Component extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance, create_fragment, safe_not_equal, { props: 8 });
+		init(this, options, instance, create_fragment, safe_not_equal, { props: 10 }, null, [-1, -1]);
 	}
 }
 
