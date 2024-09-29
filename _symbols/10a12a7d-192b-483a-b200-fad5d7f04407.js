@@ -176,6 +176,13 @@ function listen(node, event, handler, options) {
     node.addEventListener(event, handler, options);
     return () => node.removeEventListener(event, handler, options);
 }
+function prevent_default(fn) {
+    return function (event) {
+        event.preventDefault();
+        // @ts-ignore
+        return fn.call(this, event);
+    };
+}
 function attr(node, attribute, value) {
     if (value == null)
         node.removeAttribute(attribute);
@@ -279,30 +286,10 @@ function set_data(text, data) {
         return;
     text.data = data;
 }
-function set_input_value(input, value) {
-    input.value = value == null ? '' : value;
-}
 
 let current_component;
 function set_current_component(component) {
     current_component = component;
-}
-function get_current_component() {
-    if (!current_component)
-        throw new Error('Function called outside component initialization');
-    return current_component;
-}
-/**
- * The `onMount` function schedules a callback to run as soon as the component has been mounted to the DOM.
- * It must be called during the component's initialisation (but doesn't need to live *inside* the component;
- * it can be called from an external module).
- *
- * `onMount` does not run inside a [server-side component](/docs#run-time-server-side-component-api).
- *
- * https://svelte.dev/docs#run-time-svelte-onmount
- */
-function onMount(fn) {
-    get_current_component().$$.on_mount.push(fn);
 }
 
 const dirty_components = [];
@@ -556,39 +543,58 @@ class SvelteComponent {
 
 function get_each_context(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[8] = list[i];
+	child_ctx[7] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[8] = list[i];
+	child_ctx[7] = list[i];
 	return child_ctx;
 }
 
-// (89:4) {#each registeredUsers as user}
+// (65:4) {#each users as user}
 function create_each_block_1(ctx) {
 	let li;
-	let t_value = /*user*/ ctx[8] + "";
-	let t;
+	let t0_value = /*user*/ ctx[7].name + "";
+	let t0;
+	let t1;
+	let t2_value = /*user*/ ctx[7].password + "";
+	let t2;
+	let t3;
 
 	return {
 		c() {
 			li = element("li");
-			t = text(t_value);
+			t0 = text(t0_value);
+			t1 = text(" (Password: ");
+			t2 = text(t2_value);
+			t3 = text(")");
+			this.h();
 		},
 		l(nodes) {
-			li = claim_element(nodes, "LI", {});
+			li = claim_element(nodes, "LI", { class: true });
 			var li_nodes = children(li);
-			t = claim_text(li_nodes, t_value);
+			t0 = claim_text(li_nodes, t0_value);
+			t1 = claim_text(li_nodes, " (Password: ");
+			t2 = claim_text(li_nodes, t2_value);
+			t3 = claim_text(li_nodes, ")");
 			li_nodes.forEach(detach);
+			this.h();
+		},
+		h() {
+			attr(li, "class", "svelte-g2n7fc");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
-			append_hydration(li, t);
+			append_hydration(li, t0);
+			append_hydration(li, t1);
+			append_hydration(li, t2);
+			append_hydration(li, t3);
 		},
 		p(ctx, dirty) {
-			if (dirty & /*registeredUsers*/ 4 && t_value !== (t_value = /*user*/ ctx[8] + "")) set_data(t, t_value);
+			if (dirty & /*users*/ 1 && t0_value !== (t0_value = /*user*/ ctx[7].name + "")) set_data(t0, t0_value);
+			if (dirty & /*users*/ 1 && t2_value !== (t2_value = /*user*/ ctx[7].password + "")) set_data(t2, t2_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
@@ -596,29 +602,138 @@ function create_each_block_1(ctx) {
 	};
 }
 
-// (97:6) {#each waitingList as user}
+// (71:2) {#if waitingList.length > 0}
+function create_if_block(ctx) {
+	let h2;
+	let t0;
+	let t1;
+	let ul;
+	let each_value = /*waitingList*/ ctx[1];
+	let each_blocks = [];
+
+	for (let i = 0; i < each_value.length; i += 1) {
+		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+	}
+
+	return {
+		c() {
+			h2 = element("h2");
+			t0 = text("Waiting List");
+			t1 = space();
+			ul = element("ul");
+
+			for (let i = 0; i < each_blocks.length; i += 1) {
+				each_blocks[i].c();
+			}
+
+			this.h();
+		},
+		l(nodes) {
+			h2 = claim_element(nodes, "H2", {});
+			var h2_nodes = children(h2);
+			t0 = claim_text(h2_nodes, "Waiting List");
+			h2_nodes.forEach(detach);
+			t1 = claim_space(nodes);
+			ul = claim_element(nodes, "UL", { class: true });
+			var ul_nodes = children(ul);
+
+			for (let i = 0; i < each_blocks.length; i += 1) {
+				each_blocks[i].l(ul_nodes);
+			}
+
+			ul_nodes.forEach(detach);
+			this.h();
+		},
+		h() {
+			attr(ul, "class", "svelte-g2n7fc");
+		},
+		m(target, anchor) {
+			insert_hydration(target, h2, anchor);
+			append_hydration(h2, t0);
+			insert_hydration(target, t1, anchor);
+			insert_hydration(target, ul, anchor);
+
+			for (let i = 0; i < each_blocks.length; i += 1) {
+				if (each_blocks[i]) {
+					each_blocks[i].m(ul, null);
+				}
+			}
+		},
+		p(ctx, dirty) {
+			if (dirty & /*waitingList*/ 2) {
+				each_value = /*waitingList*/ ctx[1];
+				let i;
+
+				for (i = 0; i < each_value.length; i += 1) {
+					const child_ctx = get_each_context(ctx, each_value, i);
+
+					if (each_blocks[i]) {
+						each_blocks[i].p(child_ctx, dirty);
+					} else {
+						each_blocks[i] = create_each_block(child_ctx);
+						each_blocks[i].c();
+						each_blocks[i].m(ul, null);
+					}
+				}
+
+				for (; i < each_blocks.length; i += 1) {
+					each_blocks[i].d(1);
+				}
+
+				each_blocks.length = each_value.length;
+			}
+		},
+		d(detaching) {
+			if (detaching) detach(h2);
+			if (detaching) detach(t1);
+			if (detaching) detach(ul);
+			destroy_each(each_blocks, detaching);
+		}
+	};
+}
+
+// (74:6) {#each waitingList as user}
 function create_each_block(ctx) {
 	let li;
-	let t_value = /*user*/ ctx[8] + "";
-	let t;
+	let t0_value = /*user*/ ctx[7].name + "";
+	let t0;
+	let t1;
+	let t2_value = /*user*/ ctx[7].password + "";
+	let t2;
+	let t3;
 
 	return {
 		c() {
 			li = element("li");
-			t = text(t_value);
+			t0 = text(t0_value);
+			t1 = text(" (Password: ");
+			t2 = text(t2_value);
+			t3 = text(")");
+			this.h();
 		},
 		l(nodes) {
-			li = claim_element(nodes, "LI", {});
+			li = claim_element(nodes, "LI", { class: true });
 			var li_nodes = children(li);
-			t = claim_text(li_nodes, t_value);
+			t0 = claim_text(li_nodes, t0_value);
+			t1 = claim_text(li_nodes, " (Password: ");
+			t2 = claim_text(li_nodes, t2_value);
+			t3 = claim_text(li_nodes, ")");
 			li_nodes.forEach(detach);
+			this.h();
+		},
+		h() {
+			attr(li, "class", "svelte-g2n7fc");
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
-			append_hydration(li, t);
+			append_hydration(li, t0);
+			append_hydration(li, t1);
+			append_hydration(li, t2);
+			append_hydration(li, t3);
 		},
 		p(ctx, dirty) {
-			if (dirty & /*waitingList*/ 8 && t_value !== (t_value = /*user*/ ctx[8] + "")) set_data(t, t_value);
+			if (dirty & /*waitingList*/ 2 && t0_value !== (t0_value = /*user*/ ctx[7].name + "")) set_data(t0, t0_value);
+			if (dirty & /*waitingList*/ 2 && t2_value !== (t2_value = /*user*/ ctx[7].password + "")) set_data(t2, t2_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
@@ -631,47 +746,27 @@ function create_fragment(ctx) {
 	let h1;
 	let t0;
 	let t1;
-	let input0;
+	let form;
+	let input;
 	let t2;
-	let input1;
+	let button;
 	let t3;
-	let button0;
 	let t4;
+	let h2;
 	let t5;
-	let h20;
 	let t6;
+	let ul;
 	let t7;
-	let ul0;
-	let t8;
-	let div0;
-	let h21;
-	let t9;
-	let t10;
-	let ul1;
-	let t11;
-	let div1;
-	let button1;
-	let a0;
-	let t12;
-	let t13;
-	let button2;
-	let a1;
-	let t14;
 	let mounted;
 	let dispose;
-	let each_value_1 = /*registeredUsers*/ ctx[2];
-	let each_blocks_1 = [];
-
-	for (let i = 0; i < each_value_1.length; i += 1) {
-		each_blocks_1[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
-	}
-
-	let each_value = /*waitingList*/ ctx[3];
+	let each_value_1 = /*users*/ ctx[0];
 	let each_blocks = [];
 
-	for (let i = 0; i < each_value.length; i += 1) {
-		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+	for (let i = 0; i < each_value_1.length; i += 1) {
+		each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
 	}
+
+	let if_block = /*waitingList*/ ctx[1].length > 0 && create_if_block(ctx);
 
 	return {
 		c() {
@@ -679,42 +774,23 @@ function create_fragment(ctx) {
 			h1 = element("h1");
 			t0 = text("Event Registration");
 			t1 = space();
-			input0 = element("input");
+			form = element("form");
+			input = element("input");
 			t2 = space();
-			input1 = element("input");
-			t3 = space();
-			button0 = element("button");
-			t4 = text("Register");
-			t5 = space();
-			h20 = element("h2");
-			t6 = text("Registered Users:");
-			t7 = space();
-			ul0 = element("ul");
-
-			for (let i = 0; i < each_blocks_1.length; i += 1) {
-				each_blocks_1[i].c();
-			}
-
-			t8 = space();
-			div0 = element("div");
-			h21 = element("h2");
-			t9 = text("Waiting List:");
-			t10 = space();
-			ul1 = element("ul");
+			button = element("button");
+			t3 = text("Register");
+			t4 = space();
+			h2 = element("h2");
+			t5 = text("Registered Users");
+			t6 = space();
+			ul = element("ul");
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].c();
 			}
 
-			t11 = space();
-			div1 = element("div");
-			button1 = element("button");
-			a0 = element("a");
-			t12 = text("Add to Google Calendar");
-			t13 = space();
-			button2 = element("button");
-			a1 = element("a");
-			t14 = text("Send via WhatsApp");
+			t7 = space();
+			if (if_block) if_block.c();
 			this.h();
 		},
 		l(nodes) {
@@ -725,83 +801,48 @@ function create_fragment(ctx) {
 			t0 = claim_text(h1_nodes, "Event Registration");
 			h1_nodes.forEach(detach);
 			t1 = claim_space(section_nodes);
-			input0 = claim_element(section_nodes, "INPUT", { type: true, id: true, placeholder: true });
-			t2 = claim_space(section_nodes);
-			input1 = claim_element(section_nodes, "INPUT", { type: true, id: true, placeholder: true });
-			t3 = claim_space(section_nodes);
-			button0 = claim_element(section_nodes, "BUTTON", {});
-			var button0_nodes = children(button0);
-			t4 = claim_text(button0_nodes, "Register");
-			button0_nodes.forEach(detach);
-			t5 = claim_space(section_nodes);
-			h20 = claim_element(section_nodes, "H2", {});
-			var h20_nodes = children(h20);
-			t6 = claim_text(h20_nodes, "Registered Users:");
-			h20_nodes.forEach(detach);
-			t7 = claim_space(section_nodes);
-			ul0 = claim_element(section_nodes, "UL", { id: true });
-			var ul0_nodes = children(ul0);
+			form = claim_element(section_nodes, "FORM", { class: true });
+			var form_nodes = children(form);
 
-			for (let i = 0; i < each_blocks_1.length; i += 1) {
-				each_blocks_1[i].l(ul0_nodes);
-			}
+			input = claim_element(form_nodes, "INPUT", {
+				type: true,
+				placeholder: true,
+				class: true
+			});
 
-			ul0_nodes.forEach(detach);
-			t8 = claim_space(section_nodes);
-			div0 = claim_element(section_nodes, "DIV", { id: true, class: true });
-			var div0_nodes = children(div0);
-			h21 = claim_element(div0_nodes, "H2", {});
-			var h21_nodes = children(h21);
-			t9 = claim_text(h21_nodes, "Waiting List:");
-			h21_nodes.forEach(detach);
-			t10 = claim_space(div0_nodes);
-			ul1 = claim_element(div0_nodes, "UL", { id: true });
-			var ul1_nodes = children(ul1);
+			t2 = claim_space(form_nodes);
+			button = claim_element(form_nodes, "BUTTON", { type: true, class: true });
+			var button_nodes = children(button);
+			t3 = claim_text(button_nodes, "Register");
+			button_nodes.forEach(detach);
+			form_nodes.forEach(detach);
+			t4 = claim_space(section_nodes);
+			h2 = claim_element(section_nodes, "H2", {});
+			var h2_nodes = children(h2);
+			t5 = claim_text(h2_nodes, "Registered Users");
+			h2_nodes.forEach(detach);
+			t6 = claim_space(section_nodes);
+			ul = claim_element(section_nodes, "UL", { class: true });
+			var ul_nodes = children(ul);
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
-				each_blocks[i].l(ul1_nodes);
+				each_blocks[i].l(ul_nodes);
 			}
 
-			ul1_nodes.forEach(detach);
-			div0_nodes.forEach(detach);
-			t11 = claim_space(section_nodes);
-			div1 = claim_element(section_nodes, "DIV", { class: true });
-			var div1_nodes = children(div1);
-			button1 = claim_element(div1_nodes, "BUTTON", {});
-			var button1_nodes = children(button1);
-			a0 = claim_element(button1_nodes, "A", { href: true, class: true });
-			var a0_nodes = children(a0);
-			t12 = claim_text(a0_nodes, "Add to Google Calendar");
-			a0_nodes.forEach(detach);
-			button1_nodes.forEach(detach);
-			t13 = claim_space(div1_nodes);
-			button2 = claim_element(div1_nodes, "BUTTON", {});
-			var button2_nodes = children(button2);
-			a1 = claim_element(button2_nodes, "A", { href: true, class: true });
-			var a1_nodes = children(a1);
-			t14 = claim_text(a1_nodes, "Send via WhatsApp");
-			a1_nodes.forEach(detach);
-			button2_nodes.forEach(detach);
-			div1_nodes.forEach(detach);
+			ul_nodes.forEach(detach);
+			t7 = claim_space(section_nodes);
+			if (if_block) if_block.l(section_nodes);
 			section_nodes.forEach(detach);
 			this.h();
 		},
 		h() {
-			attr(input0, "type", "text");
-			attr(input0, "id", "nameInput");
-			attr(input0, "placeholder", "Enter your name");
-			attr(input1, "type", "password");
-			attr(input1, "id", "passwordInput");
-			attr(input1, "placeholder", "Enter password");
-			attr(ul0, "id", "registeredList");
-			attr(ul1, "id", "waitingListItems");
-			attr(div0, "id", "waitingList");
-			attr(div0, "class", "svelte-1owefo0");
-			attr(a0, "href", "https://calendar.google.com");
-			attr(a0, "class", "add-to-calendar svelte-1owefo0");
-			attr(a1, "href", "https://wa.me/?text=I%20would%20like%20to%20register");
-			attr(a1, "class", "send-whatsapp svelte-1owefo0");
-			attr(div1, "class", "buttons svelte-1owefo0");
+			attr(input, "type", "text");
+			attr(input, "placeholder", "Enter your name");
+			attr(input, "class", "svelte-g2n7fc");
+			attr(button, "type", "submit");
+			attr(button, "class", "svelte-g2n7fc");
+			attr(form, "class", "svelte-g2n7fc");
+			attr(ul, "class", "svelte-g2n7fc");
 			attr(section, "class", "section-container");
 		},
 		m(target, anchor) {
@@ -809,104 +850,46 @@ function create_fragment(ctx) {
 			append_hydration(section, h1);
 			append_hydration(h1, t0);
 			append_hydration(section, t1);
-			append_hydration(section, input0);
-			set_input_value(input0, /*name*/ ctx[0]);
-			append_hydration(section, t2);
-			append_hydration(section, input1);
-			set_input_value(input1, /*password*/ ctx[1]);
-			append_hydration(section, t3);
-			append_hydration(section, button0);
-			append_hydration(button0, t4);
-			append_hydration(section, t5);
-			append_hydration(section, h20);
-			append_hydration(h20, t6);
-			append_hydration(section, t7);
-			append_hydration(section, ul0);
-
-			for (let i = 0; i < each_blocks_1.length; i += 1) {
-				if (each_blocks_1[i]) {
-					each_blocks_1[i].m(ul0, null);
-				}
-			}
-
-			append_hydration(section, t8);
-			append_hydration(section, div0);
-			append_hydration(div0, h21);
-			append_hydration(h21, t9);
-			append_hydration(div0, t10);
-			append_hydration(div0, ul1);
+			append_hydration(section, form);
+			append_hydration(form, input);
+			/*input_binding*/ ctx[5](input);
+			append_hydration(form, t2);
+			append_hydration(form, button);
+			append_hydration(button, t3);
+			append_hydration(section, t4);
+			append_hydration(section, h2);
+			append_hydration(h2, t5);
+			append_hydration(section, t6);
+			append_hydration(section, ul);
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				if (each_blocks[i]) {
-					each_blocks[i].m(ul1, null);
+					each_blocks[i].m(ul, null);
 				}
 			}
 
-			append_hydration(section, t11);
-			append_hydration(section, div1);
-			append_hydration(div1, button1);
-			append_hydration(button1, a0);
-			append_hydration(a0, t12);
-			append_hydration(div1, t13);
-			append_hydration(div1, button2);
-			append_hydration(button2, a1);
-			append_hydration(a1, t14);
+			append_hydration(section, t7);
+			if (if_block) if_block.m(section, null);
 
 			if (!mounted) {
-				dispose = [
-					listen(input0, "input", /*input0_input_handler*/ ctx[6]),
-					listen(input1, "input", /*input1_input_handler*/ ctx[7]),
-					listen(button0, "click", /*registerUser*/ ctx[4])
-				];
-
+				dispose = listen(form, "submit", prevent_default(/*submit_handler*/ ctx[6]));
 				mounted = true;
 			}
 		},
 		p(ctx, [dirty]) {
-			if (dirty & /*name*/ 1 && input0.value !== /*name*/ ctx[0]) {
-				set_input_value(input0, /*name*/ ctx[0]);
-			}
-
-			if (dirty & /*password*/ 2 && input1.value !== /*password*/ ctx[1]) {
-				set_input_value(input1, /*password*/ ctx[1]);
-			}
-
-			if (dirty & /*registeredUsers*/ 4) {
-				each_value_1 = /*registeredUsers*/ ctx[2];
+			if (dirty & /*users*/ 1) {
+				each_value_1 = /*users*/ ctx[0];
 				let i;
 
 				for (i = 0; i < each_value_1.length; i += 1) {
 					const child_ctx = get_each_context_1(ctx, each_value_1, i);
 
-					if (each_blocks_1[i]) {
-						each_blocks_1[i].p(child_ctx, dirty);
-					} else {
-						each_blocks_1[i] = create_each_block_1(child_ctx);
-						each_blocks_1[i].c();
-						each_blocks_1[i].m(ul0, null);
-					}
-				}
-
-				for (; i < each_blocks_1.length; i += 1) {
-					each_blocks_1[i].d(1);
-				}
-
-				each_blocks_1.length = each_value_1.length;
-			}
-
-			if (dirty & /*waitingList*/ 8) {
-				each_value = /*waitingList*/ ctx[3];
-				let i;
-
-				for (i = 0; i < each_value.length; i += 1) {
-					const child_ctx = get_each_context(ctx, each_value, i);
-
 					if (each_blocks[i]) {
 						each_blocks[i].p(child_ctx, dirty);
 					} else {
-						each_blocks[i] = create_each_block(child_ctx);
+						each_blocks[i] = create_each_block_1(child_ctx);
 						each_blocks[i].c();
-						each_blocks[i].m(ul1, null);
+						each_blocks[i].m(ul, null);
 					}
 				}
 
@@ -914,113 +897,96 @@ function create_fragment(ctx) {
 					each_blocks[i].d(1);
 				}
 
-				each_blocks.length = each_value.length;
+				each_blocks.length = each_value_1.length;
+			}
+
+			if (/*waitingList*/ ctx[1].length > 0) {
+				if (if_block) {
+					if_block.p(ctx, dirty);
+				} else {
+					if_block = create_if_block(ctx);
+					if_block.c();
+					if_block.m(section, null);
+				}
+			} else if (if_block) {
+				if_block.d(1);
+				if_block = null;
 			}
 		},
 		i: noop,
 		o: noop,
 		d(detaching) {
 			if (detaching) detach(section);
-			destroy_each(each_blocks_1, detaching);
+			/*input_binding*/ ctx[5](null);
 			destroy_each(each_blocks, detaching);
+			if (if_block) if_block.d();
 			mounted = false;
-			run_all(dispose);
+			dispose();
 		}
 	};
 }
 
 const maxUsers = 10;
-const predefinedPassword = 'fatax'; // Set your password here
+const predefinedPassword = "Predefined123";
 
 function instance($$self, $$props, $$invalidate) {
 	let { props } = $$props;
-	let name = '';
-	let password = '';
-	let registeredUsers = [];
+	let users = [];
 	let waitingList = [];
+	let userName = ""; // Declare userName variable
 
-	// Load from session storage on mount
-	onMount(() => {
-		const storedRegisteredUsers = sessionStorage.getItem('registeredUsers');
-		const storedWaitingList = sessionStorage.getItem('waitingList');
-
-		$$invalidate(2, registeredUsers = storedRegisteredUsers
-		? JSON.parse(storedRegisteredUsers)
-		: []);
-
-		$$invalidate(3, waitingList = storedWaitingList ? JSON.parse(storedWaitingList) : []);
-	});
-
-	// Function to register the user
 	function registerUser() {
-		console.log("Name entered: ", name); // Log name to check value
-		console.log("Password entered: ", password); // Log password to check value
+		if (userName.trim() === "") return; // Ignore empty names
 
-		if (!name || !password) {
-			alert('Please enter both name and password');
-			return;
-		}
-
-		if (password !== predefinedPassword) {
-			alert('Incorrect password. Access denied.');
-			return;
-		}
-
-		if (registeredUsers.includes(name)) {
-			alert('This name is already registered.');
-			return;
-		}
-
-		// Add to registered users or waiting list
-		if (registeredUsers.length < maxUsers) {
-			$$invalidate(2, registeredUsers = [...registeredUsers, name]); // Add user to the list
-			alert(`${name} is registered!`);
+		if (users.length < maxUsers) {
+			$$invalidate(0, users = [
+				...users,
+				{
+					name: userName,
+					password: predefinedPassword
+				}
+			]);
 		} else {
-			$$invalidate(3, waitingList = [...waitingList, name]); // Add to waiting list
-			alert(`${name} is added to the waiting list.`);
+			$$invalidate(1, waitingList = [
+				...waitingList,
+				{
+					name: userName,
+					password: predefinedPassword
+				}
+			]);
 		}
 
-		// Save data in session storage
-		sessionStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
-
-		sessionStorage.setItem('waitingList', JSON.stringify(waitingList));
-
-		// Reset input fields
-		$$invalidate(0, name = '');
-
-		$$invalidate(1, password = '');
+		$$invalidate(2, userName = ""); // Clear the input after submission
 	}
 
-	function input0_input_handler() {
-		name = this.value;
-		$$invalidate(0, name);
+	function input_binding($$value) {
+		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
+			userName = $$value;
+			$$invalidate(2, userName);
+		});
 	}
 
-	function input1_input_handler() {
-		password = this.value;
-		$$invalidate(1, password);
-	}
+	const submit_handler = () => registerUser(userName.value);
 
 	$$self.$$set = $$props => {
-		if ('props' in $$props) $$invalidate(5, props = $$props.props);
+		if ('props' in $$props) $$invalidate(4, props = $$props.props);
 	};
 
 	return [
-		name,
-		password,
-		registeredUsers,
+		users,
 		waitingList,
+		userName,
 		registerUser,
 		props,
-		input0_input_handler,
-		input1_input_handler
+		input_binding,
+		submit_handler
 	];
 }
 
 class Component extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance, create_fragment, safe_not_equal, { props: 5 });
+		init(this, options, instance, create_fragment, safe_not_equal, { props: 4 });
 	}
 }
 
