@@ -559,29 +559,19 @@ function get_each_context_1(ctx, list, i) {
 // (76:4) {#each users as user}
 function create_each_block_1(ctx) {
 	let li;
-	let t0_value = /*user*/ ctx[8].name + "";
-	let t0;
-	let t1;
-	let t2_value = /*user*/ ctx[8].password + "";
-	let t2;
-	let t3;
+	let t_value = /*user*/ ctx[8].name + "";
+	let t;
 
 	return {
 		c() {
 			li = element("li");
-			t0 = text(t0_value);
-			t1 = text(" (Password: ");
-			t2 = text(t2_value);
-			t3 = text(")");
+			t = text(t_value);
 			this.h();
 		},
 		l(nodes) {
 			li = claim_element(nodes, "LI", { class: true });
 			var li_nodes = children(li);
-			t0 = claim_text(li_nodes, t0_value);
-			t1 = claim_text(li_nodes, " (Password: ");
-			t2 = claim_text(li_nodes, t2_value);
-			t3 = claim_text(li_nodes, ")");
+			t = claim_text(li_nodes, t_value);
 			li_nodes.forEach(detach);
 			this.h();
 		},
@@ -590,14 +580,10 @@ function create_each_block_1(ctx) {
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
-			append_hydration(li, t0);
-			append_hydration(li, t1);
-			append_hydration(li, t2);
-			append_hydration(li, t3);
+			append_hydration(li, t);
 		},
 		p(ctx, dirty) {
-			if (dirty & /*users*/ 1 && t0_value !== (t0_value = /*user*/ ctx[8].name + "")) set_data(t0, t0_value);
-			if (dirty & /*users*/ 1 && t2_value !== (t2_value = /*user*/ ctx[8].password + "")) set_data(t2, t2_value);
+			if (dirty & /*users*/ 1 && t_value !== (t_value = /*user*/ ctx[8].name + "")) set_data(t, t_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
@@ -698,29 +684,19 @@ function create_if_block(ctx) {
 // (85:6) {#each waitingList as user}
 function create_each_block(ctx) {
 	let li;
-	let t0_value = /*user*/ ctx[8].name + "";
-	let t0;
-	let t1;
-	let t2_value = /*user*/ ctx[8].password + "";
-	let t2;
-	let t3;
+	let t_value = /*user*/ ctx[8].name + "";
+	let t;
 
 	return {
 		c() {
 			li = element("li");
-			t0 = text(t0_value);
-			t1 = text(" (Password: ");
-			t2 = text(t2_value);
-			t3 = text(")");
+			t = text(t_value);
 			this.h();
 		},
 		l(nodes) {
 			li = claim_element(nodes, "LI", { class: true });
 			var li_nodes = children(li);
-			t0 = claim_text(li_nodes, t0_value);
-			t1 = claim_text(li_nodes, " (Password: ");
-			t2 = claim_text(li_nodes, t2_value);
-			t3 = claim_text(li_nodes, ")");
+			t = claim_text(li_nodes, t_value);
 			li_nodes.forEach(detach);
 			this.h();
 		},
@@ -729,14 +705,10 @@ function create_each_block(ctx) {
 		},
 		m(target, anchor) {
 			insert_hydration(target, li, anchor);
-			append_hydration(li, t0);
-			append_hydration(li, t1);
-			append_hydration(li, t2);
-			append_hydration(li, t3);
+			append_hydration(li, t);
 		},
 		p(ctx, dirty) {
-			if (dirty & /*waitingList*/ 2 && t0_value !== (t0_value = /*user*/ ctx[8].name + "")) set_data(t0, t0_value);
-			if (dirty & /*waitingList*/ 2 && t2_value !== (t2_value = /*user*/ ctx[8].password + "")) set_data(t2, t2_value);
+			if (dirty & /*waitingList*/ 2 && t_value !== (t_value = /*user*/ ctx[8].name + "")) set_data(t, t_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
