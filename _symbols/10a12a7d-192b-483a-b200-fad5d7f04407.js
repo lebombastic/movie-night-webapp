@@ -286,6 +286,9 @@ function set_data(text, data) {
         return;
     text.data = data;
 }
+function set_input_value(input, value) {
+    input.value = value == null ? '' : value;
+}
 
 let current_component;
 function set_current_component(component) {
@@ -543,23 +546,23 @@ class SvelteComponent {
 
 function get_each_context(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[7] = list[i];
+	child_ctx[8] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[7] = list[i];
+	child_ctx[8] = list[i];
 	return child_ctx;
 }
 
-// (65:4) {#each users as user}
+// (76:4) {#each users as user}
 function create_each_block_1(ctx) {
 	let li;
-	let t0_value = /*user*/ ctx[7].name + "";
+	let t0_value = /*user*/ ctx[8].name + "";
 	let t0;
 	let t1;
-	let t2_value = /*user*/ ctx[7].password + "";
+	let t2_value = /*user*/ ctx[8].password + "";
 	let t2;
 	let t3;
 
@@ -593,8 +596,8 @@ function create_each_block_1(ctx) {
 			append_hydration(li, t3);
 		},
 		p(ctx, dirty) {
-			if (dirty & /*users*/ 1 && t0_value !== (t0_value = /*user*/ ctx[7].name + "")) set_data(t0, t0_value);
-			if (dirty & /*users*/ 1 && t2_value !== (t2_value = /*user*/ ctx[7].password + "")) set_data(t2, t2_value);
+			if (dirty & /*users*/ 1 && t0_value !== (t0_value = /*user*/ ctx[8].name + "")) set_data(t0, t0_value);
+			if (dirty & /*users*/ 1 && t2_value !== (t2_value = /*user*/ ctx[8].password + "")) set_data(t2, t2_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
@@ -602,7 +605,7 @@ function create_each_block_1(ctx) {
 	};
 }
 
-// (71:2) {#if waitingList.length > 0}
+// (82:2) {#if waitingList.length > 0}
 function create_if_block(ctx) {
 	let h2;
 	let t0;
@@ -692,13 +695,13 @@ function create_if_block(ctx) {
 	};
 }
 
-// (74:6) {#each waitingList as user}
+// (85:6) {#each waitingList as user}
 function create_each_block(ctx) {
 	let li;
-	let t0_value = /*user*/ ctx[7].name + "";
+	let t0_value = /*user*/ ctx[8].name + "";
 	let t0;
 	let t1;
-	let t2_value = /*user*/ ctx[7].password + "";
+	let t2_value = /*user*/ ctx[8].password + "";
 	let t2;
 	let t3;
 
@@ -732,8 +735,8 @@ function create_each_block(ctx) {
 			append_hydration(li, t3);
 		},
 		p(ctx, dirty) {
-			if (dirty & /*waitingList*/ 2 && t0_value !== (t0_value = /*user*/ ctx[7].name + "")) set_data(t0, t0_value);
-			if (dirty & /*waitingList*/ 2 && t2_value !== (t2_value = /*user*/ ctx[7].password + "")) set_data(t2, t2_value);
+			if (dirty & /*waitingList*/ 2 && t0_value !== (t0_value = /*user*/ ctx[8].name + "")) set_data(t0, t0_value);
+			if (dirty & /*waitingList*/ 2 && t2_value !== (t2_value = /*user*/ ctx[8].password + "")) set_data(t2, t2_value);
 		},
 		d(detaching) {
 			if (detaching) detach(li);
@@ -747,16 +750,18 @@ function create_fragment(ctx) {
 	let t0;
 	let t1;
 	let form;
-	let input;
+	let input0;
 	let t2;
-	let button;
+	let input1;
 	let t3;
+	let button;
 	let t4;
-	let h2;
 	let t5;
+	let h2;
 	let t6;
-	let ul;
 	let t7;
+	let ul;
+	let t8;
 	let mounted;
 	let dispose;
 	let each_value_1 = /*users*/ ctx[0];
@@ -775,21 +780,23 @@ function create_fragment(ctx) {
 			t0 = text("Event Registration");
 			t1 = space();
 			form = element("form");
-			input = element("input");
+			input0 = element("input");
 			t2 = space();
+			input1 = element("input");
+			t3 = space();
 			button = element("button");
-			t3 = text("Register");
-			t4 = space();
+			t4 = text("Register");
+			t5 = space();
 			h2 = element("h2");
-			t5 = text("Registered Users");
-			t6 = space();
+			t6 = text("Registered Users");
+			t7 = space();
 			ul = element("ul");
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
 				each_blocks[i].c();
 			}
 
-			t7 = space();
+			t8 = space();
 			if (if_block) if_block.c();
 			this.h();
 		},
@@ -804,24 +811,32 @@ function create_fragment(ctx) {
 			form = claim_element(section_nodes, "FORM", { class: true });
 			var form_nodes = children(form);
 
-			input = claim_element(form_nodes, "INPUT", {
+			input0 = claim_element(form_nodes, "INPUT", {
 				type: true,
 				placeholder: true,
 				class: true
 			});
 
 			t2 = claim_space(form_nodes);
+
+			input1 = claim_element(form_nodes, "INPUT", {
+				type: true,
+				placeholder: true,
+				class: true
+			});
+
+			t3 = claim_space(form_nodes);
 			button = claim_element(form_nodes, "BUTTON", { type: true, class: true });
 			var button_nodes = children(button);
-			t3 = claim_text(button_nodes, "Register");
+			t4 = claim_text(button_nodes, "Register");
 			button_nodes.forEach(detach);
 			form_nodes.forEach(detach);
-			t4 = claim_space(section_nodes);
+			t5 = claim_space(section_nodes);
 			h2 = claim_element(section_nodes, "H2", {});
 			var h2_nodes = children(h2);
-			t5 = claim_text(h2_nodes, "Registered Users");
+			t6 = claim_text(h2_nodes, "Registered Users");
 			h2_nodes.forEach(detach);
-			t6 = claim_space(section_nodes);
+			t7 = claim_space(section_nodes);
 			ul = claim_element(section_nodes, "UL", { class: true });
 			var ul_nodes = children(ul);
 
@@ -830,15 +845,20 @@ function create_fragment(ctx) {
 			}
 
 			ul_nodes.forEach(detach);
-			t7 = claim_space(section_nodes);
+			t8 = claim_space(section_nodes);
 			if (if_block) if_block.l(section_nodes);
 			section_nodes.forEach(detach);
 			this.h();
 		},
 		h() {
-			attr(input, "type", "text");
-			attr(input, "placeholder", "Enter your name");
-			attr(input, "class", "svelte-g2n7fc");
+			attr(input0, "type", "text");
+			attr(input0, "placeholder", "Enter your name");
+			input0.required = true;
+			attr(input0, "class", "svelte-g2n7fc");
+			attr(input1, "type", "password");
+			attr(input1, "placeholder", "Enter the predefined password");
+			input1.required = true;
+			attr(input1, "class", "svelte-g2n7fc");
 			attr(button, "type", "submit");
 			attr(button, "class", "svelte-g2n7fc");
 			attr(form, "class", "svelte-g2n7fc");
@@ -851,15 +871,18 @@ function create_fragment(ctx) {
 			append_hydration(h1, t0);
 			append_hydration(section, t1);
 			append_hydration(section, form);
-			append_hydration(form, input);
-			/*input_binding*/ ctx[5](input);
+			append_hydration(form, input0);
+			set_input_value(input0, /*userName*/ ctx[2]);
 			append_hydration(form, t2);
+			append_hydration(form, input1);
+			set_input_value(input1, /*userPassword*/ ctx[3]);
+			append_hydration(form, t3);
 			append_hydration(form, button);
-			append_hydration(button, t3);
-			append_hydration(section, t4);
+			append_hydration(button, t4);
+			append_hydration(section, t5);
 			append_hydration(section, h2);
-			append_hydration(h2, t5);
-			append_hydration(section, t6);
+			append_hydration(h2, t6);
+			append_hydration(section, t7);
 			append_hydration(section, ul);
 
 			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -868,15 +891,28 @@ function create_fragment(ctx) {
 				}
 			}
 
-			append_hydration(section, t7);
+			append_hydration(section, t8);
 			if (if_block) if_block.m(section, null);
 
 			if (!mounted) {
-				dispose = listen(form, "submit", prevent_default(/*submit_handler*/ ctx[6]));
+				dispose = [
+					listen(input0, "input", /*input0_input_handler*/ ctx[6]),
+					listen(input1, "input", /*input1_input_handler*/ ctx[7]),
+					listen(form, "submit", prevent_default(/*registerUser*/ ctx[4]))
+				];
+
 				mounted = true;
 			}
 		},
 		p(ctx, [dirty]) {
+			if (dirty & /*userName*/ 4 && input0.value !== /*userName*/ ctx[2]) {
+				set_input_value(input0, /*userName*/ ctx[2]);
+			}
+
+			if (dirty & /*userPassword*/ 8 && input1.value !== /*userPassword*/ ctx[3]) {
+				set_input_value(input1, /*userPassword*/ ctx[3]);
+			}
+
 			if (dirty & /*users*/ 1) {
 				each_value_1 = /*users*/ ctx[0];
 				let i;
@@ -917,11 +953,10 @@ function create_fragment(ctx) {
 		o: noop,
 		d(detaching) {
 			if (detaching) detach(section);
-			/*input_binding*/ ctx[5](null);
 			destroy_each(each_blocks, detaching);
 			if (if_block) if_block.d();
 			mounted = false;
-			dispose();
+			run_all(dispose);
 		}
 	};
 }
@@ -933,60 +968,59 @@ function instance($$self, $$props, $$invalidate) {
 	let { props } = $$props;
 	let users = [];
 	let waitingList = [];
-	let userName = ""; // Declare userName variable
+	let userName = "";
+	let userPassword = ""; // Input for user-provided password
 
 	function registerUser() {
-		if (userName.trim() === "") return; // Ignore empty names
+		if (userName.trim() === "" || userPassword.trim() === "") return; // Ignore empty names or passwords
 
-		if (users.length < maxUsers) {
-			$$invalidate(0, users = [
-				...users,
-				{
-					name: userName,
-					password: predefinedPassword
-				}
-			]);
+		// Check if entered password matches the predefined one
+		if (userPassword === predefinedPassword) {
+			if (users.length < maxUsers) {
+				$$invalidate(0, users = [...users, { name: userName, password: userPassword }]);
+			} else {
+				$$invalidate(1, waitingList = [...waitingList, { name: userName, password: userPassword }]);
+			}
 		} else {
-			$$invalidate(1, waitingList = [
-				...waitingList,
-				{
-					name: userName,
-					password: predefinedPassword
-				}
-			]);
+			alert("Incorrect password! Please enter the predefined password.");
 		}
 
-		$$invalidate(2, userName = ""); // Clear the input after submission
+		// Clear input fields after submission
+		$$invalidate(2, userName = "");
+
+		$$invalidate(3, userPassword = "");
 	}
 
-	function input_binding($$value) {
-		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
-			userName = $$value;
-			$$invalidate(2, userName);
-		});
+	function input0_input_handler() {
+		userName = this.value;
+		$$invalidate(2, userName);
 	}
 
-	const submit_handler = () => registerUser(userName.value);
+	function input1_input_handler() {
+		userPassword = this.value;
+		$$invalidate(3, userPassword);
+	}
 
 	$$self.$$set = $$props => {
-		if ('props' in $$props) $$invalidate(4, props = $$props.props);
+		if ('props' in $$props) $$invalidate(5, props = $$props.props);
 	};
 
 	return [
 		users,
 		waitingList,
 		userName,
+		userPassword,
 		registerUser,
 		props,
-		input_binding,
-		submit_handler
+		input0_input_handler,
+		input1_input_handler
 	];
 }
 
 class Component extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance, create_fragment, safe_not_equal, { props: 4 });
+		init(this, options, instance, create_fragment, safe_not_equal, { props: 5 });
 	}
 }
 
